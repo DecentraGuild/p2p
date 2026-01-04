@@ -96,17 +96,26 @@
 }
 
 /* Reset wallet modal individual wallet options to default styling */
-.swv-modal-wrapper button,
-.swv-modal-wrapper [class*="wallet"],
+/* Target all buttons inside the modal except the main connect button */
+.swv-modal-wrapper button:not(.swv-button),
+.swv-modal-wrapper [class*="wallet"]:not(.swv-button),
 .swv-modal-list button,
-.swv-modal-list-item button {
+.swv-modal-list-item button,
+.swv-modal-list-item,
+[class*="swv-modal"] button:not(.swv-button),
+[class*="wallet-adapter-modal"] button:not([data-testid="wallet-adapter-button"]),
+[class*="wallet-adapter-modal"] [role="button"]:not([data-testid="wallet-adapter-button"]) {
   background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
   color: inherit !important;
   border: none !important;
   box-shadow: none !important;
 }
 
 /* Ensure wallet modal items have proper hover states */
-.swv-modal-list-item:hover {
+.swv-modal-list-item:hover,
+[class*="wallet-adapter-modal"] [role="button"]:hover:not([data-testid="wallet-adapter-button"]) {
   background-color: rgba(255, 255, 255, 0.05) !important;
+  background-image: none !important;
 }

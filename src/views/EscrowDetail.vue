@@ -49,8 +49,8 @@
                 <Icon icon="mdi:arrow-left-right" class="w-5 h-5 text-text-primary" />
               </div>
               <div class="flex items-center gap-1.5 justify-start pl-3">
-                <BaseTokenImage v-if="escrow.requestToken" :token="escrow.requestToken" size="sm" />
                 <span class="whitespace-nowrap text-left">{{ formatBalance(escrow.price, escrow.requestToken.decimals) }} {{ escrow.requestToken.symbol || 'Token' }}</span>
+                <BaseTokenImage v-if="escrow.requestToken" :token="escrow.requestToken" size="sm" />
               </div>
             </div>
             
@@ -148,26 +148,35 @@
             <div class="bg-secondary-bg/50 rounded-xl p-3">
               <div class="flex items-center justify-between">
                 <span class="text-sm text-text-muted">You will receive:</span>
-                <span class="text-text-primary font-semibold text-right whitespace-nowrap">
-                  {{ formatBalance(expectedReceiveAmount, escrow.depositToken.decimals) }} {{ escrow.depositToken.symbol || 'Token' }}
-                </span>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-text-primary font-semibold text-right whitespace-nowrap">
+                    {{ formatBalance(expectedReceiveAmount, escrow.depositToken.decimals) }} {{ escrow.depositToken.symbol || 'Token' }}
+                  </span>
+                  <BaseTokenImage v-if="escrow.depositToken" :token="escrow.depositToken" size="sm" />
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Full Fill Display (when partial fill disabled) -->
-          <div v-else class="bg-secondary-bg/50 rounded-xl p-3">
-            <div class="flex items-center justify-between mb-2">
+          <div v-else class="bg-secondary-bg/50 rounded-xl p-3 space-y-2">
+            <div class="flex items-center justify-between">
               <span class="text-sm text-text-muted">You will pay:</span>
-              <span class="text-text-primary font-semibold text-right whitespace-nowrap">
-                {{ formatBalance(escrow.requestAmount, escrow.requestToken.decimals) }} {{ escrow.requestToken.symbol || 'Token' }}
-              </span>
+              <div class="flex items-center gap-1.5">
+                <span class="text-text-primary font-semibold text-right whitespace-nowrap">
+                  {{ formatBalance(escrow.requestAmount, escrow.requestToken.decimals) }} {{ escrow.requestToken.symbol || 'Token' }}
+                </span>
+                <BaseTokenImage v-if="escrow.requestToken" :token="escrow.requestToken" size="sm" />
+              </div>
             </div>
             <div class="flex items-center justify-between">
               <span class="text-sm text-text-muted">You will receive:</span>
-              <span class="text-text-primary font-semibold text-right whitespace-nowrap">
-                {{ formatBalance(escrow.depositRemaining, escrow.depositToken.decimals) }} {{ escrow.depositToken.symbol || 'Token' }}
-              </span>
+              <div class="flex items-center gap-1.5">
+                <span class="text-text-primary font-semibold text-right whitespace-nowrap">
+                  {{ formatBalance(escrow.depositRemaining, escrow.depositToken.decimals) }} {{ escrow.depositToken.symbol || 'Token' }}
+                </span>
+                <BaseTokenImage v-if="escrow.depositToken" :token="escrow.depositToken" size="sm" />
+              </div>
             </div>
           </div>
 
@@ -345,7 +354,7 @@ import { fetchEscrowByAddress } from '../utils/escrowTransactions'
 import { calculateExchangeCosts } from '../utils/transactionCosts'
 import { FUND_TAKER_COSTS, TRANSACTION_COSTS } from '../utils/constants/fees'
 import { BN } from '@coral-xyz/anchor'
-import { SystemProgram } from '@solana/web3.js'
+import { SystemProgram, PublicKey } from '@solana/web3.js'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import BaseShareModal from '../components/BaseShareModal.vue'
 import BaseAddressDisplay from '../components/BaseAddressDisplay.vue'
@@ -598,6 +607,15 @@ const loadEscrow = async () => {
     return
   }
 
+  // Validate escrow ID format (should be a valid Solana public key)
+  try {
+    new PublicKey(escrowId.value)
+  } catch (err) {
+    error.value = 'Invalid escrow ID format'
+    loading.value = false
+    return
+  }
+
   loading.value = true
   error.value = null
 
@@ -605,6 +623,7 @@ const loadEscrow = async () => {
     const rawEscrow = await fetchEscrowByAddress(connection, escrowId.value)
     
     if (!rawEscrow) {
+      error.value = 'Escrow not found'
       escrow.value = null
       loading.value = false
       return

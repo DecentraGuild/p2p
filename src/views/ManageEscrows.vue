@@ -57,17 +57,21 @@
                 <div class="space-y-2">
                   <div class="flex items-center gap-2">
                     <span class="text-text-muted text-sm">Offering:</span>
-                    <span class="text-text-primary font-semibold">
-                      {{ formatBalance(escrow.depositRemaining, escrow.depositToken.decimals) }} 
-                      {{ escrow.depositToken.symbol || 'Unknown' }}
-                    </span>
+                    <TokenAmountDisplay
+                      :token="escrow.depositToken"
+                      :amount="escrow.depositRemaining"
+                      :decimals="escrow.depositToken.decimals"
+                      icon-size="sm"
+                    />
                   </div>
                   <div class="flex items-center gap-2">
                     <span class="text-text-muted text-sm">Requesting:</span>
-                    <span class="text-text-primary font-semibold">
-                      {{ formatBalance(escrow.requestAmount, escrow.requestToken.decimals) }} 
-                      {{ escrow.requestToken.symbol || 'Unknown' }}
-                    </span>
+                    <TokenAmountDisplay
+                      :token="escrow.requestToken"
+                      :amount="escrow.requestAmount"
+                      :decimals="escrow.requestToken.decimals"
+                      icon-size="sm"
+                    />
                   </div>
                   <div v-if="escrow.expireTimestamp > 0" class="flex items-center gap-2">
                     <Icon icon="mdi:clock-outline" class="w-4 h-4 text-text-muted" />
@@ -182,6 +186,7 @@ import { BN } from '@coral-xyz/anchor'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import BaseShareModal from '../components/BaseShareModal.vue'
 import BaseAddressDisplay from '../components/BaseAddressDisplay.vue'
+import TokenAmountDisplay from '../components/TokenAmountDisplay.vue'
 import { useExplorer } from '../composables/useExplorer'
 import { useToast } from '../composables/useToast'
 

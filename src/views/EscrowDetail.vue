@@ -41,31 +41,59 @@
           <div class="bg-secondary-bg/50 rounded-xl p-3 space-y-2">
             <!-- Price Line 1: 1 depositToken = price * requestToken -->
             <div class="grid grid-cols-[1fr_auto_1fr] items-center text-sm text-text-secondary">
-              <div class="flex items-center gap-1.5 justify-end pr-3">
-                <BaseTokenImage v-if="escrow.depositToken" :token="escrow.depositToken" size="sm" />
-                <span class="whitespace-nowrap text-right">1 {{ escrow.depositToken.symbol || 'Token' }}</span>
+              <div class="flex justify-end pr-3">
+                <TokenAmountDisplay
+                  v-if="escrow.depositToken"
+                  :token="escrow.depositToken"
+                  :amount="1"
+                  :decimals="escrow.depositToken.decimals"
+                  icon-size="sm"
+                  amount-class="text-text-secondary whitespace-nowrap"
+                  ticker-class="text-text-secondary whitespace-nowrap"
+                />
               </div>
               <div class="flex justify-center flex-shrink-0 px-2">
                 <Icon icon="mdi:arrow-left-right" class="w-5 h-5 text-text-primary" />
               </div>
-              <div class="flex items-center gap-1.5 justify-start pl-3">
-                <span class="whitespace-nowrap text-left">{{ formatBalance(escrow.price, escrow.requestToken.decimals) }} {{ escrow.requestToken.symbol || 'Token' }}</span>
-                <BaseTokenImage v-if="escrow.requestToken" :token="escrow.requestToken" size="sm" />
+              <div class="flex justify-start pl-3">
+                <TokenAmountDisplay
+                  v-if="escrow.requestToken"
+                  :token="escrow.requestToken"
+                  :amount="escrow.price"
+                  :decimals="escrow.requestToken.decimals"
+                  icon-size="sm"
+                  amount-class="text-text-secondary whitespace-nowrap"
+                  ticker-class="text-text-secondary whitespace-nowrap"
+                />
               </div>
             </div>
             
             <!-- Price Line 2: 1 requestToken = 1/price * depositToken -->
             <div class="grid grid-cols-[1fr_auto_1fr] items-center text-sm text-text-secondary">
-              <div class="flex items-center gap-1.5 justify-end pr-3">
-                <BaseTokenImage v-if="escrow.requestToken" :token="escrow.requestToken" size="sm" />
-                <span class="whitespace-nowrap text-right">1 {{ escrow.requestToken.symbol || 'Token' }}</span>
+              <div class="flex justify-end pr-3">
+                <TokenAmountDisplay
+                  v-if="escrow.requestToken"
+                  :token="escrow.requestToken"
+                  :amount="1"
+                  :decimals="escrow.requestToken.decimals"
+                  icon-size="sm"
+                  amount-class="text-text-secondary whitespace-nowrap"
+                  ticker-class="text-text-secondary whitespace-nowrap"
+                />
               </div>
               <div class="flex justify-center flex-shrink-0 px-2">
                 <Icon icon="mdi:arrow-left-right" class="w-5 h-5 text-text-primary" />
               </div>
-              <div class="flex items-center gap-1.5 justify-start pl-3">
-                <BaseTokenImage v-if="escrow.depositToken" :token="escrow.depositToken" size="sm" />
-                <span class="whitespace-nowrap text-left">{{ formatBalance(1 / escrow.price, escrow.depositToken.decimals) }} {{ escrow.depositToken.symbol || 'Token' }}</span>
+              <div class="flex justify-start pl-3">
+                <TokenAmountDisplay
+                  v-if="escrow.depositToken"
+                  :token="escrow.depositToken"
+                  :amount="1 / escrow.price"
+                  :decimals="escrow.depositToken.decimals"
+                  icon-size="sm"
+                  amount-class="text-text-secondary whitespace-nowrap"
+                  ticker-class="text-text-secondary whitespace-nowrap"
+                />
               </div>
             </div>
           </div>
@@ -77,12 +105,17 @@
           
           <!-- Wallet Balance Display -->
           <div class="bg-secondary-bg/50 rounded-xl p-3">
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-text-muted">Your {{ escrow.requestToken.symbol || 'Token' }} Balance:</span>
-              <span v-if="loadingRequestTokenBalance" class="text-text-muted text-sm text-right whitespace-nowrap">Loading...</span>
-              <span v-else class="text-text-primary font-semibold text-right whitespace-nowrap">
-                {{ formatBalance(requestTokenBalance, escrow.requestToken.decimals) }} {{ escrow.requestToken.symbol || 'Token' }}
-              </span>
+            <div class="grid grid-cols-2 gap-4 items-center">
+              <span class="text-sm text-text-muted text-left">Your {{ escrow.requestToken.symbol || 'Token' }} Balance:</span>
+              <span v-if="loadingRequestTokenBalance" class="text-text-muted text-sm text-left whitespace-nowrap">Loading...</span>
+              <TokenAmountDisplay
+                v-else
+                :token="escrow.requestToken"
+                :amount="requestTokenBalance"
+                :decimals="escrow.requestToken.decimals"
+                icon-size="sm"
+                container-class="text-left"
+              />
             </div>
           </div>
 
@@ -90,9 +123,18 @@
           <div v-if="escrow.allowPartialFill" class="space-y-3">
             <div class="flex items-center justify-between">
               <label class="text-sm font-semibold text-text-primary">Amount to Fill</label>
-              <span class="text-xs text-text-muted">
-                Max: {{ formatBalance(maxFillAmount, escrow.requestToken.decimals) }} {{ escrow.requestToken.symbol || 'Token' }}
-              </span>
+              <div class="text-xs text-text-muted">
+                Max: 
+                <TokenAmountDisplay
+                  :token="escrow.requestToken"
+                  :amount="maxFillAmount"
+                  :decimals="escrow.requestToken.decimals"
+                  icon-size="xs"
+                  container-class="inline-flex"
+                  amount-class="text-text-muted text-xs"
+                  ticker-class="text-text-muted text-xs"
+                />
+              </div>
             </div>
             
             <!-- Slider -->
@@ -146,45 +188,48 @@
 
             <!-- Expected Receive -->
             <div class="bg-secondary-bg/50 rounded-xl p-3">
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-text-muted">You will receive:</span>
-                <div class="flex items-center gap-1.5">
-                  <span class="text-text-primary font-semibold text-right whitespace-nowrap">
-                    {{ formatBalance(expectedReceiveAmount, escrow.depositToken.decimals) }} {{ escrow.depositToken.symbol || 'Token' }}
-                  </span>
-                  <BaseTokenImage v-if="escrow.depositToken" :token="escrow.depositToken" size="sm" />
-                </div>
+              <div class="grid grid-cols-2 gap-4 items-center">
+                <span class="text-sm text-text-muted text-left">You will receive:</span>
+                <TokenAmountDisplay
+                  :token="escrow.depositToken"
+                  :amount="expectedReceiveAmount"
+                  :decimals="escrow.depositToken.decimals"
+                  icon-size="sm"
+                  container-class="text-left"
+                />
               </div>
             </div>
           </div>
 
           <!-- Full Fill Display (when partial fill disabled) -->
           <div v-else class="bg-secondary-bg/50 rounded-xl p-3 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-text-muted">You will pay:</span>
-              <div class="flex items-center gap-1.5">
-                <span class="text-text-primary font-semibold text-right whitespace-nowrap">
-                  {{ formatBalance(escrow.requestAmount, escrow.requestToken.decimals) }} {{ escrow.requestToken.symbol || 'Token' }}
-                </span>
-                <BaseTokenImage v-if="escrow.requestToken" :token="escrow.requestToken" size="sm" />
-              </div>
+            <div class="grid grid-cols-2 gap-4 items-center">
+              <span class="text-sm text-text-muted text-left">You will pay:</span>
+              <TokenAmountDisplay
+                :token="escrow.requestToken"
+                :amount="escrow.requestAmount"
+                :decimals="escrow.requestToken.decimals"
+                icon-size="sm"
+                container-class="text-left"
+              />
             </div>
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-text-muted">You will receive:</span>
-              <div class="flex items-center gap-1.5">
-                <span class="text-text-primary font-semibold text-right whitespace-nowrap">
-                  {{ formatBalance(escrow.depositRemaining, escrow.depositToken.decimals) }} {{ escrow.depositToken.symbol || 'Token' }}
-                </span>
-                <BaseTokenImage v-if="escrow.depositToken" :token="escrow.depositToken" size="sm" />
-              </div>
+            <div class="grid grid-cols-2 gap-4 items-center">
+              <span class="text-sm text-text-muted text-left">You will receive:</span>
+              <TokenAmountDisplay
+                :token="escrow.depositToken"
+                :amount="escrow.depositRemaining"
+                :decimals="escrow.depositToken.decimals"
+                icon-size="sm"
+                container-class="text-left"
+              />
             </div>
           </div>
 
           <!-- Transaction Fee Info -->
           <div v-if="exchangeCosts" class="bg-secondary-bg/50 rounded-xl p-3 border border-border-color/50">
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-sm text-text-muted">Transaction fee:</span>
-              <span class="text-text-primary font-semibold text-right whitespace-nowrap">
+            <div class="grid grid-cols-2 gap-4 items-center mb-1">
+              <span class="text-sm text-text-muted text-left">Transaction fee:</span>
+              <span class="text-text-primary font-semibold text-left whitespace-nowrap">
                 {{ formatBalance(exchangeCosts.totalCost, 9) }} SOL
               </span>
             </div>
@@ -252,23 +297,51 @@
             </div>
             <div>
               <label class="text-sm text-text-muted">Deposit amount</label>
-              <p class="text-text-primary font-mono text-sm">
-                {{ formatBalance(escrow.depositAmount, escrow.depositToken.decimals) }} {{ escrow.depositToken.symbol || 'Token' }}
-              </p>
+              <div class="text-text-primary text-sm">
+                <TokenAmountDisplay
+                  :token="escrow.depositToken"
+                  :amount="escrow.depositAmount"
+                  :decimals="escrow.depositToken.decimals"
+                  icon-size="sm"
+                  amount-class="text-text-primary text-sm"
+                  ticker-class="text-text-primary text-sm"
+                />
+              </div>
             </div>
             <div>
               <label class="text-sm text-text-muted">Remaining amount</label>
-              <p class="text-text-primary font-mono text-sm">
-                {{ formatBalance(escrow.depositRemaining, escrow.depositToken.decimals) }} {{ escrow.depositToken.symbol || 'Token' }}, 
-                {{ formatBalance(escrow.depositRemaining * escrow.price, escrow.requestToken.decimals) }} {{ escrow.requestToken.symbol || 'Token' }}, 
-                {{ remainingPercentage }}%
-              </p>
+              <div class="text-text-primary text-sm space-y-1">
+                <TokenAmountDisplay
+                  :token="escrow.depositToken"
+                  :amount="escrow.depositRemaining"
+                  :decimals="escrow.depositToken.decimals"
+                  icon-size="sm"
+                  amount-class="text-text-primary text-sm"
+                  ticker-class="text-text-primary text-sm"
+                />
+                <TokenAmountDisplay
+                  :token="escrow.requestToken"
+                  :amount="escrow.depositRemaining * escrow.price"
+                  :decimals="escrow.requestToken.decimals"
+                  icon-size="sm"
+                  amount-class="text-text-primary text-sm"
+                  ticker-class="text-text-primary text-sm"
+                />
+                <span class="text-text-primary text-sm">{{ remainingPercentage }}%</span>
+              </div>
             </div>
             <div>
               <label class="text-sm text-text-muted">Price</label>
-              <p class="text-text-primary font-mono text-sm">
-                {{ escrow.price }} {{ escrow.requestToken.symbol || 'Token' }}
-              </p>
+              <div class="text-text-primary text-sm">
+                <TokenAmountDisplay
+                  :token="escrow.requestToken"
+                  :amount="escrow.price"
+                  :decimals="escrow.requestToken.decimals"
+                  icon-size="sm"
+                  amount-class="text-text-primary text-sm"
+                  ticker-class="text-text-primary text-sm"
+                />
+              </div>
             </div>
             <div>
               <label class="text-sm text-text-muted mb-1 block">Recipient</label>
@@ -359,6 +432,7 @@ import ConfirmModal from '../components/ConfirmModal.vue'
 import BaseShareModal from '../components/BaseShareModal.vue'
 import BaseAddressDisplay from '../components/BaseAddressDisplay.vue'
 import BaseTokenImage from '../components/BaseTokenImage.vue'
+import TokenAmountDisplay from '../components/TokenAmountDisplay.vue'
 import { useToast } from '../composables/useToast'
 
 const route = useRoute()

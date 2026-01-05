@@ -4,7 +4,7 @@
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
     @click.self="close"
   >
-    <div class="card max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <div class="card max-w-lg w-full mx-2 sm:mx-4 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-bold text-text-primary">Pricing</h2>
         <button

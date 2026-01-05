@@ -2,14 +2,14 @@
   <div class="space-y-1.5">
     <div class="section-banner">{{ type.toUpperCase() }}</div>
     <div class="bg-secondary-bg/50 rounded-b-xl p-3">
-      <div class="flex items-end gap-3">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
         <!-- Token Selector -->
-        <div class="flex-1">
+        <div class="flex-1 min-w-0">
           <label class="block text-xs font-semibold text-text-secondary mb-1.5">{{ label }}</label>
           <div class="relative">
             <button
               @click="showTokenSelector = !showTokenSelector"
-              class="input-field w-full flex items-center justify-between"
+              class="input-field w-full flex items-center justify-between min-h-[44px]"
             >
               <span v-if="token" class="flex items-center gap-2">
                 <BaseTokenImage :token="token" size="sm" />
@@ -43,16 +43,23 @@
         </div>
 
         <!-- Amount Input -->
-        <div class="flex-1">
+        <div class="flex-1 min-w-0">
           <div class="flex items-center justify-between mb-1.5">
             <label class="block text-xs font-semibold text-text-secondary">Amount</label>
             <!-- Wallet Balance above input (only for offer type when token is selected) -->
-            <div v-if="type === 'offer' && token" class="text-xs text-text-muted">
+            <div v-if="type === 'offer' && token" class="text-xs text-text-muted hidden sm:block">
               <span v-if="tokenBalance !== undefined && tokenBalance !== null">
                 Wallet balance : {{ formatBalance(tokenBalance) }}
               </span>
               <span v-else>Loading balance...</span>
             </div>
+          </div>
+          <!-- Mobile: Show balance below label -->
+          <div v-if="type === 'offer' && token" class="text-xs text-text-muted mb-1.5 sm:hidden">
+            <span v-if="tokenBalance !== undefined && tokenBalance !== null">
+              Balance: {{ formatBalance(tokenBalance) }}
+            </span>
+            <span v-else>Loading balance...</span>
           </div>
           <div class="relative">
             <input
@@ -61,17 +68,17 @@
               :step="token ? getStepForDecimals(token.decimals) : '0.01'"
               min="0"
               :placeholder="token ? getPlaceholderForDecimals(token.decimals) : '0.00'"
-              class="input-field w-full"
-              :class="type === 'offer' && token && tokenBalance > 0 ? 'pr-32' : ''"
+              class="input-field w-full min-h-[44px]"
+              :class="type === 'offer' && token && tokenBalance > 0 ? 'pr-24 sm:pr-32' : ''"
               @input="updateAmount"
             />
             <!-- Percentage Buttons inside input (only for offer type) -->
-            <div v-if="type === 'offer' && token && tokenBalance > 0" class="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+            <div v-if="type === 'offer' && token && tokenBalance > 0" class="absolute right-2 top-1/2 -translate-y-1/2 flex gap-0.5 sm:gap-1">
               <button
                 v-for="percentage in percentageOptions"
                 :key="percentage.value"
                 @click.stop="setPercentage(percentage.value)"
-                class="px-1.5 py-0.5 text-xs font-medium rounded bg-secondary-bg/80 text-text-secondary hover:bg-secondary-bg transition-colors"
+                class="px-1 sm:px-1.5 py-0.5 text-[10px] sm:text-xs font-medium rounded bg-secondary-bg/80 text-text-secondary hover:bg-secondary-bg transition-colors min-h-[24px]"
               >
                 {{ percentage.label }}
               </button>

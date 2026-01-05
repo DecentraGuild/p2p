@@ -1,24 +1,25 @@
 <template>
-  <div class="min-h-screen bg-primary-bg py-4 px-4">
+  <div class="min-h-screen bg-primary-bg py-3 sm:py-4 px-3 sm:px-4">
     <div class="max-w-4xl mx-auto">
       <!-- Header with Back Button -->
-      <div class="flex items-center gap-4 mb-6">
+      <div class="flex items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
         <button
           @click="$router.back()"
-          class="p-2 hover:bg-secondary-bg rounded-xl transition-colors"
+          class="p-2 hover:bg-secondary-bg rounded-xl transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+          aria-label="Go back"
         >
-          <Icon icon="mdi:arrow-left" class="w-6 h-6 text-text-primary" />
+          <Icon icon="mdi:arrow-left" class="w-5 h-5 sm:w-6 sm:h-6 text-text-primary" />
         </button>
-        <div class="flex-1">
-          <h1 class="text-2xl font-bold text-text-primary mb-1">Offer</h1>
-          <p class="text-sm text-text-muted font-mono">{{ truncateAddress(escrowId) }}</p>
+        <div class="flex-1 min-w-0">
+          <h1 class="text-xl sm:text-2xl font-bold text-text-primary mb-1">Offer</h1>
+          <p class="text-xs sm:text-sm text-text-muted font-mono truncate">{{ truncateAddress(escrowId) }}</p>
         </div>
         <button
           @click="showShareModal()"
-          class="p-2 hover:bg-secondary-bg rounded-xl transition-colors"
+          class="p-2 hover:bg-secondary-bg rounded-xl transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
           title="Share escrow"
         >
-          <Icon icon="mdi:share-variant" class="w-6 h-6 text-text-muted hover:text-text-primary" />
+          <Icon icon="mdi:share-variant" class="w-5 h-5 sm:w-6 sm:h-6 text-text-muted hover:text-text-primary" />
         </button>
       </div>
 
@@ -105,9 +106,9 @@
           
           <!-- Wallet Balance Display -->
           <div class="bg-secondary-bg/50 rounded-xl p-3">
-            <div class="grid grid-cols-2 gap-4 items-center">
-              <span class="text-sm text-text-muted text-left">Your {{ escrow.requestToken.symbol || 'Token' }} Balance:</span>
-              <span v-if="loadingRequestTokenBalance" class="text-text-muted text-sm text-left whitespace-nowrap">Loading...</span>
+            <div class="flex flex-col sm:grid sm:grid-cols-2 gap-2 sm:gap-4 items-start sm:items-center">
+              <span class="text-sm text-text-muted">Your {{ escrow.requestToken.symbol || 'Token' }} Balance:</span>
+              <span v-if="loadingRequestTokenBalance" class="text-text-muted text-sm whitespace-nowrap">Loading...</span>
               <TokenAmountDisplay
                 v-else
                 :token="escrow.requestToken"
@@ -188,8 +189,8 @@
 
             <!-- Expected Receive -->
             <div class="bg-secondary-bg/50 rounded-xl p-3">
-              <div class="grid grid-cols-2 gap-4 items-center">
-                <span class="text-sm text-text-muted text-left">You will receive:</span>
+              <div class="flex flex-col sm:grid sm:grid-cols-2 gap-2 sm:gap-4 items-start sm:items-center">
+                <span class="text-sm text-text-muted">You will receive:</span>
                 <TokenAmountDisplay
                   :token="escrow.depositToken"
                   :amount="expectedReceiveAmount"
@@ -203,8 +204,8 @@
 
           <!-- Full Fill Display (when partial fill disabled) -->
           <div v-else class="bg-secondary-bg/50 rounded-xl p-3 space-y-2">
-            <div class="grid grid-cols-2 gap-4 items-center">
-              <span class="text-sm text-text-muted text-left">You will pay:</span>
+            <div class="flex flex-col sm:grid sm:grid-cols-2 gap-2 sm:gap-4 items-start sm:items-center">
+              <span class="text-sm text-text-muted">You will pay:</span>
               <TokenAmountDisplay
                 :token="escrow.requestToken"
                 :amount="escrow.requestAmount"
@@ -213,8 +214,8 @@
                 container-class="text-left"
               />
             </div>
-            <div class="grid grid-cols-2 gap-4 items-center">
-              <span class="text-sm text-text-muted text-left">You will receive:</span>
+            <div class="flex flex-col sm:grid sm:grid-cols-2 gap-2 sm:gap-4 items-start sm:items-center">
+              <span class="text-sm text-text-muted">You will receive:</span>
               <TokenAmountDisplay
                 :token="escrow.depositToken"
                 :amount="escrow.depositRemaining"
@@ -227,9 +228,9 @@
 
           <!-- Transaction Fee Info -->
           <div v-if="exchangeCosts" class="bg-secondary-bg/50 rounded-xl p-3 border border-border-color/50">
-            <div class="grid grid-cols-2 gap-4 items-center mb-1">
-              <span class="text-sm text-text-muted text-left">Transaction fee:</span>
-              <span class="text-text-primary font-semibold text-left whitespace-nowrap">
+            <div class="flex flex-col sm:grid sm:grid-cols-2 gap-2 sm:gap-4 items-start sm:items-center mb-1">
+              <span class="text-sm text-text-muted">Transaction fee:</span>
+              <span class="text-text-primary font-semibold whitespace-nowrap">
                 {{ formatBalance(exchangeCosts.totalCost, 9) }} SOL
               </span>
             </div>
@@ -244,7 +245,7 @@
           <button
             @click="exchangeEscrow"
             :disabled="exchanging || !canFill || !canExchange"
-            class="btn-primary w-full py-3 disabled:opacity-50"
+            class="btn-primary w-full py-3 sm:py-3 disabled:opacity-50 min-h-[44px] text-sm sm:text-base"
           >
             <Icon v-if="exchanging" icon="svg-spinners:ring-resize" class="w-5 h-5 inline mr-2" />
             <Icon v-else icon="mdi:swap-horizontal" class="w-5 h-5 inline mr-2" />
@@ -257,7 +258,7 @@
           <button
             @click="cancelEscrow"
             :disabled="cancelling"
-            class="btn-secondary flex-1 py-3 disabled:opacity-50"
+            class="btn-secondary flex-1 py-3 disabled:opacity-50 min-h-[44px] text-sm sm:text-base"
           >
             <Icon v-if="cancelling" icon="svg-spinners:ring-resize" class="w-5 h-5 inline mr-2" />
             <Icon v-else :icon="escrow.status === 'filled' ? 'mdi:check-circle' : 'mdi:close'" class="w-5 h-5 inline mr-2" />
@@ -278,7 +279,7 @@
             />
           </button>
           
-          <div v-show="showEscrowDetails" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div v-show="showEscrowDetails" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="text-sm text-text-muted mb-1 block">Escrow</label>
               <BaseAddressDisplay :address="escrow.id" />

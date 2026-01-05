@@ -1,6 +1,6 @@
 <template>
-  <div v-if="show" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click="handleBackdropClick">
-    <div class="bg-secondary-bg rounded-xl p-6 max-w-md w-full mx-4 border border-border-color" @click.stop>
+  <div v-if="show" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" @click="handleBackdropClick">
+    <div class="bg-secondary-bg rounded-xl p-4 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto border border-border-color shadow-lg" @click.stop>
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-bold text-text-primary">{{ title }}</h3>
         <button @click="handleClose" class="text-text-muted hover:text-text-primary transition-colors">

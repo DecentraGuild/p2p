@@ -1,10 +1,10 @@
 <template>
-  <div class="min-h-screen bg-primary-bg py-4 px-4">
+  <div class="min-h-screen bg-primary-bg py-3 sm:py-4 px-3 sm:px-4">
     <div class="max-w-3xl mx-auto">
       <!-- Header -->
-      <div class="text-center mb-4">
-        <h1 class="text-2xl font-bold text-text-primary mb-1">CREATE ESCROW</h1>
-        <p class="text-sm text-text-secondary">Secure SPL token escrow for Solana</p>
+      <div class="text-center mb-3 sm:mb-4">
+        <h1 class="text-xl sm:text-2xl font-bold text-text-primary mb-1">CREATE ESCROW</h1>
+        <p class="text-xs sm:text-sm text-text-secondary">Secure SPL token escrow for Solana</p>
       </div>
 
       <!-- Main Card -->
@@ -55,7 +55,7 @@
           <button 
             @click="handleCreateEscrow"
             :disabled="!canSubmit || loading"
-            class="btn-primary w-full py-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="btn-primary w-full py-3 sm:py-2.5 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base min-h-[44px]"
           >
             <span v-if="loading">Creating Escrow...</span>
             <span v-else>Create Escrow</span>

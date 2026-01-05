@@ -25,13 +25,13 @@
       </div>
 
       <!-- Direct Address Input -->
-      <div v-if="localDirect" class="ml-4 space-y-1.5">
+      <div v-if="localDirect" class="ml-0 sm:ml-4 space-y-1.5">
         <label class="block text-xs font-semibold text-text-secondary">Counterparty Address</label>
         <input
           v-model="localDirectAddress"
           type="text"
           placeholder="Enter Solana wallet address"
-          class="input-field w-full"
+          class="input-field w-full min-h-[44px]"
         />
       </div>
 
@@ -54,11 +54,11 @@
       </div>
 
       <!-- Expire Date Input -->
-      <div v-if="localExpire" class="ml-4">
+      <div v-if="localExpire" class="ml-0 sm:ml-4">
         <input
           v-model="localExpireDate"
           type="datetime-local"
-          class="input-field w-full"
+          class="input-field w-full min-h-[44px]"
         />
       </div>
 
@@ -83,7 +83,7 @@
             type="number"
             min="0"
             max="100"
-            class="input-field w-16 text-right"
+            class="input-field w-16 sm:w-20 text-right min-h-[44px]"
           />
           <span class="text-xs text-text-muted">milli%</span>
         </div>

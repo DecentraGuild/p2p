@@ -25,14 +25,26 @@
 @layer components {
   .btn-primary {
     @apply bg-gradient-primary text-text-primary font-semibold py-2 px-4 rounded-xl transition-all duration-300 text-sm;
+    /* Ensure minimum touch target size for mobile */
+    min-height: 44px;
   }
   
   .btn-secondary {
     @apply bg-card-bg text-text-primary border-2 border-border-color hover:border-primary-color hover:bg-primary-color/10 font-semibold py-1.5 px-3 rounded-xl transition-all duration-300 text-sm;
+    /* Ensure minimum touch target size for mobile */
+    min-height: 44px;
   }
   
   .input-field {
     @apply bg-card-bg border border-border-color rounded-xl px-3 py-2 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-primary-color focus:ring-1 focus:ring-primary-color/20 transition-all;
+    /* Prevent iOS zoom on input focus - font size must be at least 16px */
+    font-size: 16px;
+  }
+  
+  @media (min-width: 640px) {
+    .input-field {
+      font-size: 0.875rem; /* 14px on desktop */
+    }
   }
   
   /* Hide spinner arrows on number inputs */
@@ -80,11 +92,22 @@
   color: #ffffff !important;
   border-radius: 0.75rem !important;
   font-weight: 600 !important;
-  padding: 0.5rem 1rem !important;
+  padding: 0.5rem 0.75rem !important;
   transition: all 0.3s ease !important;
   border: none !important;
-  font-size: 0.875rem !important;
+  font-size: 0.75rem !important;
   box-shadow: none !important;
+  min-height: 36px !important;
+  white-space: nowrap !important;
+}
+
+@media (min-width: 640px) {
+  .wallet-button-custom button,
+  .wallet-button-custom > button {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.875rem !important;
+    min-height: auto !important;
+  }
 }
 
 .wallet-button-custom button:hover,

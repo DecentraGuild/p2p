@@ -1,10 +1,10 @@
 <template>
-  <div class="min-h-screen bg-primary-bg py-4 px-4">
+  <div class="min-h-screen bg-primary-bg py-3 sm:py-4 px-3 sm:px-4">
     <div class="max-w-4xl mx-auto">
       <!-- Header -->
-      <div class="mb-4">
-        <h1 class="text-2xl font-bold text-text-primary mb-1">Manage Escrows</h1>
-        <p class="text-sm text-text-secondary">View and manage your escrow transactions</p>
+      <div class="mb-3 sm:mb-4">
+        <h1 class="text-xl sm:text-2xl font-bold text-text-primary mb-1">Manage Escrows</h1>
+        <p class="text-xs sm:text-sm text-text-secondary">View and manage your escrow transactions</p>
       </div>
 
       <!-- Error Message -->
@@ -31,9 +31,9 @@
             class="bg-secondary-bg/50 rounded-xl p-4 border border-border-color hover:border-primary-color/40 transition-all"
           >
             <!-- Header Row -->
-            <div class="flex items-start justify-between mb-4">
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-2">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-start gap-3 sm:gap-0 sm:justify-between mb-4">
+              <div class="flex-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-2 mb-2">
                   <span
                     :class="[
                       'px-2 py-0.5 rounded text-xs font-semibold',
@@ -83,28 +83,30 @@
               </div>
               
               <!-- Action Buttons -->
-              <div class="flex items-center gap-2 ml-4">
-                <button
-                  @click="showShareModal(escrow)"
-                  class="btn-secondary text-sm py-2 px-4 inline-flex items-center gap-2"
-                  title="Share escrow"
-                >
-                  <Icon icon="mdi:share-variant" class="w-4 h-4" />
-                  Share
-                </button>
-                <router-link
-                  :to="`/escrow/${escrow.id}`"
-                  class="btn-secondary text-sm py-2 px-4 inline-flex items-center gap-2"
-                  title="View details"
-                >
-                  <Icon icon="mdi:eye" class="w-4 h-4" />
-                  Details
-                </router-link>
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:ml-4">
+                <div class="flex gap-2">
+                  <button
+                    @click="showShareModal(escrow)"
+                    class="btn-secondary text-sm py-2.5 sm:py-2 px-3 sm:px-4 inline-flex items-center justify-center gap-2 flex-1 sm:flex-initial min-h-[44px]"
+                    title="Share escrow"
+                  >
+                    <Icon icon="mdi:share-variant" class="w-4 h-4" />
+                    <span class="hidden sm:inline">Share</span>
+                  </button>
+                  <router-link
+                    :to="`/escrow/${escrow.id}`"
+                    class="btn-secondary text-sm py-2.5 sm:py-2 px-3 sm:px-4 inline-flex items-center justify-center gap-2 flex-1 sm:flex-initial min-h-[44px]"
+                    title="View details"
+                  >
+                    <Icon icon="mdi:eye" class="w-4 h-4" />
+                    <span class="hidden sm:inline">Details</span>
+                  </router-link>
+                </div>
                 <button
                   v-if="escrow.status === 'filled'"
                   @click="claimEscrow(escrow)"
                   :disabled="cancellingEscrow === escrow.id"
-                  class="btn-primary text-sm py-2 px-4 inline-flex items-center gap-2 disabled:opacity-50"
+                  class="btn-primary text-sm py-2.5 sm:py-2 px-3 sm:px-4 inline-flex items-center justify-center gap-2 disabled:opacity-50 min-h-[44px] w-full sm:w-auto"
                   title="Complete escrow and recover rent"
                 >
                   <Icon v-if="cancellingEscrow === escrow.id" icon="svg-spinners:ring-resize" class="w-4 h-4" />
@@ -115,7 +117,7 @@
                   v-else-if="escrow.status === 'active'"
                   @click="cancelEscrow(escrow)"
                   :disabled="cancellingEscrow === escrow.id"
-                  class="btn-secondary text-sm py-2 px-4 inline-flex items-center gap-2 disabled:opacity-50"
+                  class="btn-secondary text-sm py-2.5 sm:py-2 px-3 sm:px-4 inline-flex items-center justify-center gap-2 disabled:opacity-50 min-h-[44px] w-full sm:w-auto"
                   title="Cancel escrow"
                 >
                   <Icon v-if="cancellingEscrow === escrow.id" icon="svg-spinners:ring-resize" class="w-4 h-4" />
@@ -126,7 +128,7 @@
             </div>
 
             <!-- Escrow Details Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs pt-3 border-t border-border-color/50">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-3 border-t border-border-color/50">
               <div class="flex items-center gap-2">
                 <span class="text-text-muted">Escrow ID:</span>
                 <BaseAddressDisplay 

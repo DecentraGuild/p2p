@@ -170,6 +170,7 @@
                   :placeholder="getPlaceholderForDecimals(escrow.requestToken.decimals)"
                   class="input-field w-full pr-20"
                   @input="updateFillAmountFromInput"
+                  @keydown="handleFillAmountKeydown"
                 />
                 <div class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-text-muted">
                   {{ escrow.requestToken.symbol || 'Token' }}
@@ -581,11 +582,19 @@ const canFill = computed(() => {
 
 // Helper functions for fill amount
 const getStepForDecimals = (decimals) => {
+  // For tokens with 0 decimals, use step of 1 (whole numbers only)
+  if (decimals === 0) {
+    return '1'
+  }
   const maxDecimals = Math.min(decimals - 1, DECIMAL_CONSTANTS.MAX_STEP_DECIMALS - 1)
   return `0.${'0'.repeat(maxDecimals)}1`
 }
 
 const getPlaceholderForDecimals = (decimals) => {
+  // For tokens with 0 decimals, show whole number placeholder
+  if (decimals === 0) {
+    return '0'
+  }
   const displayDecimals = Math.min(decimals, DECIMAL_CONSTANTS.MAX_DISPLAY_DECIMALS)
   return `0.${'0'.repeat(displayDecimals)}`
 }
@@ -593,13 +602,35 @@ const getPlaceholderForDecimals = (decimals) => {
 const setFillPercentage = (percentage) => {
   fillAmountPercent.value = percentage
   const amount = (maxFillAmount.value * percentage) / 100
-  fillAmount.value = formatDecimals(amount)
+  
+  // For tokens with 0 decimals, ensure we use whole numbers only
+  if (escrow.value && escrow.value.requestToken.decimals === 0) {
+    fillAmount.value = Math.floor(amount).toString()
+  } else {
+    fillAmount.value = formatDecimals(amount)
+  }
 }
 
-const updateFillAmountFromInput = () => {
+const updateFillAmountFromInput = (event) => {
   if (!escrow.value || !fillAmount.value) {
     fillAmountPercent.value = 0
     return
+  }
+  
+  // For tokens with 0 decimals, strip decimal points
+  if (escrow.value.requestToken.decimals === 0) {
+    const inputElement = event?.target
+    let rawValue = inputElement?.value || fillAmount.value
+    
+    // Check if the value contains a decimal point
+    if (String(rawValue).includes('.')) {
+      // Remove decimal point and everything after it
+      const wholeNumber = String(rawValue).split('.')[0]
+      fillAmount.value = wholeNumber
+      if (inputElement) {
+        inputElement.value = wholeNumber
+      }
+    }
   }
   
   const amount = parseFloat(fillAmount.value)
@@ -608,14 +639,39 @@ const updateFillAmountFromInput = () => {
     return
   }
   
+  // For 0-decimal tokens, ensure amount is an integer
+  if (escrow.value.requestToken.decimals === 0) {
+    const intAmount = Math.floor(amount)
+    if (intAmount !== amount) {
+      fillAmount.value = intAmount.toString()
+    }
+  }
+  
   fillAmountPercent.value = Math.min(100, Math.max(0, (amount / maxFillAmount.value) * 100))
+}
+
+const handleFillAmountKeydown = (event) => {
+  // For tokens with 0 decimals, prevent decimal point and comma from being entered
+  if (escrow.value && escrow.value.requestToken.decimals === 0) {
+    // Prevent decimal point (period) and comma
+    if (event.key === '.' || event.key === ',' || event.key === 'e' || event.key === 'E' || event.key === '+' || event.key === '-') {
+      event.preventDefault()
+      return false
+    }
+  }
 }
 
 // Watch fillAmountPercent to update fillAmount
 watch(fillAmountPercent, (newPercent) => {
   if (escrow.value && escrow.value.allowPartialFill) {
     const amount = (maxFillAmount.value * newPercent) / 100
-    fillAmount.value = formatDecimals(amount)
+    
+    // For tokens with 0 decimals, ensure we use whole numbers only
+    if (escrow.value.requestToken.decimals === 0) {
+      fillAmount.value = Math.floor(amount).toString()
+    } else {
+      fillAmount.value = formatDecimals(amount)
+    }
   }
 })
 

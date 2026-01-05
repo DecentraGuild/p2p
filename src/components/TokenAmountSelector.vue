@@ -71,6 +71,10 @@
               class="input-field w-full min-h-[44px]"
               :class="type === 'offer' && token && tokenBalance > 0 ? 'pr-24 sm:pr-32' : ''"
               @input="updateAmount"
+              @blur="handleBlur"
+              @keydown.delete="handleDelete"
+              @keydown.backspace="handleBackspace"
+              @keydown="handleKeydown"
             />
             <!-- Percentage Buttons inside input (only for offer type) -->
             <div v-if="type === 'offer' && token && tokenBalance > 0" class="absolute right-2 top-1/2 -translate-y-1/2 flex gap-0.5 sm:gap-1">
@@ -154,14 +158,133 @@ const percentageOptions = computed(() => {
   }))
 })
 
+// Track if user is actively editing to prevent watch from overwriting empty input
+const isEditing = ref(false)
+
 watch(() => props.amount, (newVal) => {
-  localAmount.value = newVal
+  // Only update localAmount if user is not actively editing
+  // This prevents restoring old values when user clears the input
+  if (!isEditing.value) {
+    localAmount.value = newVal
+  }
 })
 
-const updateAmount = () => {
-  // Ensure amount is always a string for v-model compatibility
-  const amountValue = localAmount.value
-  emit('update:amount', typeof amountValue === 'number' ? amountValue.toString() : (amountValue || '0.00'))
+const updateAmount = (event) => {
+  // Only set isEditing if this is a user input event (not programmatic)
+  if (event) {
+    isEditing.value = true
+  }
+  
+  // Get the raw value from the input element or use localAmount
+  const inputElement = event?.target
+  let rawValue = inputElement?.value
+  
+  // If no event (programmatic call), use localAmount value
+  if (rawValue === undefined && !event) {
+    rawValue = localAmount.value
+  }
+  
+  // For number inputs, empty string becomes empty string, but we need to check
+  // If the input is empty or just whitespace, emit empty string
+  if (rawValue === '' || rawValue === null || rawValue === undefined) {
+    localAmount.value = ''
+    emit('update:amount', '')
+    // Reset editing flag after a short delay to allow watch to work again
+    if (event) {
+      setTimeout(() => {
+        isEditing.value = false
+      }, 100)
+    }
+    return
+  }
+  
+  // Convert to string and trim
+  let amountValue = String(rawValue).trim()
+  
+  // Validate: For tokens with 0 decimals, prevent decimal input
+  if (props.token && props.token.decimals === 0) {
+    // Check if the value contains a decimal point
+    if (amountValue.includes('.')) {
+      // Remove decimal point and everything after it
+      amountValue = amountValue.split('.')[0]
+      // Update the input field to reflect the change
+      if (event?.target) {
+        event.target.value = amountValue
+      }
+    }
+    // Also ensure it's a valid integer (no scientific notation, etc.)
+    const numValue = parseFloat(amountValue)
+    if (!isNaN(numValue)) {
+      amountValue = Math.floor(numValue).toString()
+      if (event?.target && event.target.value !== amountValue) {
+        event.target.value = amountValue
+      }
+    }
+  }
+  
+  // If after trimming it's empty, emit empty string
+  if (amountValue === '') {
+    localAmount.value = ''
+    emit('update:amount', '')
+  } else {
+    // Update localAmount and emit the value
+    localAmount.value = amountValue
+    emit('update:amount', amountValue)
+  }
+  
+  // Reset editing flag after a short delay (only if it was a user event)
+  if (event) {
+    setTimeout(() => {
+      isEditing.value = false
+    }, 100)
+  }
+}
+
+const handleBlur = () => {
+  // When input loses focus, if it's empty, keep it empty (don't restore to '0.00')
+  // The validation will handle empty values elsewhere
+  isEditing.value = false
+  
+  // If the input is empty or just whitespace, ensure it stays empty
+  if (!localAmount.value || String(localAmount.value).trim() === '' || localAmount.value === '0' || localAmount.value === 0) {
+    localAmount.value = ''
+    emit('update:amount', '')
+  }
+}
+
+const handleDelete = (event) => {
+  // Allow delete key to work normally, but ensure empty values are handled
+  isEditing.value = true
+}
+
+const handleBackspace = (event) => {
+  // When backspace is pressed, if the current value is "0" or empty, clear it completely
+  const input = event.target
+  const currentValue = input.value
+  
+  // If value is "0" or empty, prevent default and clear the field
+  if (currentValue === '0' || currentValue === '' || currentValue === null) {
+    event.preventDefault()
+    localAmount.value = ''
+    emit('update:amount', '')
+    // Set cursor position to start
+    setTimeout(() => {
+      input.setSelectionRange(0, 0)
+    }, 0)
+  } else {
+    isEditing.value = true
+  }
+}
+
+const handleKeydown = (event) => {
+  // For tokens with 0 decimals, prevent decimal point and comma from being entered
+  if (props.token && props.token.decimals === 0) {
+    // Prevent decimal point (period) and comma
+    if (event.key === '.' || event.key === ',' || event.key === 'e' || event.key === 'E' || event.key === '+' || event.key === '-') {
+      event.preventDefault()
+      return false
+    }
+  }
 }
 
 const setPercentage = (percentage) => {
@@ -169,10 +292,21 @@ const setPercentage = (percentage) => {
   
   const amount = tokenBalance.value * percentage
   
-  // Format amount using formatDecimals utility
-  const formattedAmount = formatDecimals(amount)
+  // For tokens with 0 decimals, ensure we use whole numbers only
+  let formattedAmount
+  if (props.token.decimals === 0) {
+    formattedAmount = Math.floor(amount).toString()
+  } else {
+    // Format amount using formatDecimals utility
+    formattedAmount = formatDecimals(amount)
+  }
+  
+  // Set isEditing to false temporarily to allow the update
+  isEditing.value = false
+  
+  // Update localAmount and emit directly (don't use updateAmount which expects an event)
   localAmount.value = formattedAmount
-  updateAmount()
+  emit('update:amount', formattedAmount)
 }
 
 const selectToken = (token) => {
@@ -192,6 +326,10 @@ const formatBalance = (balance) => {
 }
 
 const getStepForDecimals = (decimals) => {
+  // For tokens with 0 decimals, use step of 1 (whole numbers only)
+  if (decimals === 0) {
+    return '1'
+  }
   if (!decimals || decimals === DECIMAL_CONSTANTS.MIN_DECIMALS) {
     return DECIMAL_CONSTANTS.STEP_VALUES.TWO
   }
@@ -208,6 +346,10 @@ const getStepForDecimals = (decimals) => {
 }
 
 const getPlaceholderForDecimals = (decimals) => {
+  // For tokens with 0 decimals, show whole number placeholder
+  if (decimals === 0) {
+    return '0'
+  }
   if (!decimals || decimals === DECIMAL_CONSTANTS.MIN_DECIMALS) {
     return `${DECIMAL_CONSTANTS.MIN_DECIMALS}.${'0'.repeat(DECIMAL_CONSTANTS.DEFAULT_DECIMALS)}`
   }

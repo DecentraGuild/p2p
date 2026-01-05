@@ -81,6 +81,23 @@ export const useEscrowStore = defineStore('escrow', () => {
     if (!offerToken.value) return false
     const amount = parseFloat(offerAmount.value)
     if (isNaN(amount) || amount <= 0) return false
+    
+    // For tokens with 0 decimals, ensure amount is a whole number
+    if (offerToken.value.decimals === 0) {
+      if (!Number.isInteger(amount)) return false
+      // Also check the string representation for decimal points
+      const amountStr = offerAmount.value.toString()
+      if (amountStr.includes('.')) {
+        const decimalPart = amountStr.split('.')[1]
+        if (decimalPart && decimalPart.length > 0) {
+          // Check if there are any non-zero digits after decimal point
+          if (decimalPart.split('').some(digit => digit !== '0')) {
+            return false
+          }
+        }
+      }
+    }
+    
     return true
   })
   
@@ -88,6 +105,23 @@ export const useEscrowStore = defineStore('escrow', () => {
     if (!requestToken.value) return false
     const amount = parseFloat(requestAmount.value)
     if (isNaN(amount) || amount <= 0) return false
+    
+    // For tokens with 0 decimals, ensure amount is a whole number
+    if (requestToken.value.decimals === 0) {
+      if (!Number.isInteger(amount)) return false
+      // Also check the string representation for decimal points
+      const amountStr = requestAmount.value.toString()
+      if (amountStr.includes('.')) {
+        const decimalPart = amountStr.split('.')[1]
+        if (decimalPart && decimalPart.length > 0) {
+          // Check if there are any non-zero digits after decimal point
+          if (decimalPart.split('').some(digit => digit !== '0')) {
+            return false
+          }
+        }
+      }
+    }
+    
     return true
   })
   
@@ -125,13 +159,57 @@ export const useEscrowStore = defineStore('escrow', () => {
     if (!offerToken.value) {
       errors.offerToken = 'Please select a token to offer'
     } else if (!isValidOfferAmount.value) {
-      errors.offerAmount = 'Please enter a valid offer amount'
+      // Check if it's a decimal issue for 0-decimal tokens
+      if (offerToken.value.decimals === 0) {
+        const amount = parseFloat(offerAmount.value)
+        if (!isNaN(amount) && amount > 0) {
+          const amountStr = offerAmount.value.toString()
+          if (amountStr.includes('.')) {
+            const decimalPart = amountStr.split('.')[1]
+            if (decimalPart && decimalPart.length > 0 && decimalPart.split('').some(digit => digit !== '0')) {
+              errors.offerAmount = 'This token does not support decimals. Please enter a whole number.'
+            } else {
+              errors.offerAmount = 'Please enter a valid offer amount'
+            }
+          } else if (!Number.isInteger(amount)) {
+            errors.offerAmount = 'This token does not support decimals. Please enter a whole number.'
+          } else {
+            errors.offerAmount = 'Please enter a valid offer amount'
+          }
+        } else {
+          errors.offerAmount = 'Please enter a valid offer amount'
+        }
+      } else {
+        errors.offerAmount = 'Please enter a valid offer amount'
+      }
     }
     
     if (!requestToken.value) {
       errors.requestToken = 'Please select a token to request'
     } else if (!isValidRequestAmount.value) {
-      errors.requestAmount = 'Please enter a valid request amount'
+      // Check if it's a decimal issue for 0-decimal tokens
+      if (requestToken.value.decimals === 0) {
+        const amount = parseFloat(requestAmount.value)
+        if (!isNaN(amount) && amount > 0) {
+          const amountStr = requestAmount.value.toString()
+          if (amountStr.includes('.')) {
+            const decimalPart = amountStr.split('.')[1]
+            if (decimalPart && decimalPart.length > 0 && decimalPart.split('').some(digit => digit !== '0')) {
+              errors.requestAmount = 'This token does not support decimals. Please enter a whole number.'
+            } else {
+              errors.requestAmount = 'Please enter a valid request amount'
+            }
+          } else if (!Number.isInteger(amount)) {
+            errors.requestAmount = 'This token does not support decimals. Please enter a whole number.'
+          } else {
+            errors.requestAmount = 'Please enter a valid request amount'
+          }
+        } else {
+          errors.requestAmount = 'Please enter a valid request amount'
+        }
+      } else {
+        errors.requestAmount = 'Please enter a valid request amount'
+      }
     }
     
     if (offerToken.value && requestToken.value && 

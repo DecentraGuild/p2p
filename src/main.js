@@ -29,12 +29,24 @@ import {
   SolflareWalletAdapter,
 } from '@solana/wallet-adapter-wallets'
 
+// Optimized wallet configuration for mobile support
+// solana-wallets-vue automatically includes:
+// - Mobile Wallet Adapter (MWA) for Android mobile connections via deep links
+// - Wallet Standard support for automatic wallet detection (includes Backpack)
+// 
+// Mobile Wallet Adapter is automatically enabled on Android devices
+// Wallet Standard wallets (like Backpack) are automatically discovered
 const walletOptions = {
   wallets: [
     new PhantomWalletAdapter(),
     new SolflareWalletAdapter({ network: WalletAdapterNetwork.Mainnet }),
+    // Note: Backpack and other Wallet Standard wallets are automatically detected
+    // via the Wallet Standard integration in solana-wallets-vue
+    // No need to explicitly add BackpackWalletAdapter - it's auto-discovered
   ],
   autoConnect: true,
+  // localStorageKey is used to persist wallet selection across sessions
+  localStorageKey: 'walletName',
 }
 
 const app = createApp(App)

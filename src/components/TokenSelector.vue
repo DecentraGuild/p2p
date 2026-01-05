@@ -52,7 +52,8 @@
 
 <script setup>
 import { Icon } from '@iconify/vue'
-import { useWalletBalances } from '../composables/useWalletBalances'
+import { computed } from 'vue'
+import { useTokenStore } from '../stores/token'
 import { useWallet } from 'solana-wallets-vue'
 import { formatBalance as formatBalanceUtil } from '../utils/formatters'
 import BaseDropdown from './BaseDropdown.vue'
@@ -68,7 +69,12 @@ const props = defineProps({
 const emit = defineEmits(['select', 'close'])
 
 const { connected } = useWallet()
-const { balances, loading, error, loadingMetadata } = useWalletBalances()
+const tokenStore = useTokenStore()
+// Access store properties directly to maintain reactivity
+const balances = computed(() => tokenStore.balances)
+const loading = computed(() => tokenStore.loadingBalances)
+const error = computed(() => tokenStore.balancesError)
+const loadingMetadata = computed(() => tokenStore.loadingMetadata)
 
 const selectToken = (token) => {
   emit('select', token)

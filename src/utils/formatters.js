@@ -9,7 +9,8 @@
  * @returns {string} Formatted number string
  * 
  * Decimal rules:
- * - 0 - 1: 6 digits
+ * - 0 - 0.01: 9 digits (for very small prices)
+ * - 0.01 - 1: 6 digits
  * - 1 - 10: 4 digits
  * - 10 - 100: 2 digits
  * - 100 - 1000: 1 digit
@@ -34,7 +35,9 @@ export function formatDecimals(value) {
   
   // Determine decimal places based on absolute value
   let decimals
-  if (absValue < 1) {
+  if (absValue < 0.01) {
+    decimals = 9 // Very small prices need 9 digits
+  } else if (absValue < 1) {
     decimals = 6
   } else if (absValue < 10) {
     decimals = 4
@@ -50,8 +53,8 @@ export function formatDecimals(value) {
   let formatted = absValue.toFixed(decimals)
   
   // If decimals > 0, check if there are only trailing zeros after decimal point
-  // If so, reduce to 1 decimal place
-  if (decimals > 0) {
+  // If so, reduce to 1 decimal place (but only if value >= 0.01 to preserve small number precision)
+  if (decimals > 0 && absValue >= 0.01) {
     const parts = formatted.split('.')
     if (parts.length === 2) {
       const decimalPart = parts[1]

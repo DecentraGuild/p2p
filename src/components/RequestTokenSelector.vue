@@ -91,8 +91,8 @@
 <script setup>
 import { ref, watch, computed } from 'vue'
 import { Icon } from '@iconify/vue'
-import { useTokenRegistry } from '../composables/useTokenRegistry'
-import { useWalletBalances } from '../composables/useWalletBalances'
+import { useTokenStore } from '../stores/token'
+import { storeToRefs } from 'pinia'
 import { useWallet } from 'solana-wallets-vue'
 import { debounce } from '../utils/formatters'
 import BaseDropdown from './BaseDropdown.vue'
@@ -108,18 +108,26 @@ const props = defineProps({
 const emit = defineEmits(['select', 'close'])
 
 const { connected } = useWallet()
-const { balances: walletBalances, loading: walletBalancesLoading } = useWalletBalances()
-const tokenRegistry = useTokenRegistry()
+const tokenStore = useTokenStore()
+
+// Use storeToRefs for refs that need to be reactive (like searchQuery for v-model)
+const { searchQuery } = storeToRefs(tokenStore)
+
+// Access other store properties via computed to maintain reactivity
+const walletBalances = computed(() => tokenStore.balances)
+const walletBalancesLoading = computed(() => tokenStore.loadingBalances)
+const registryLoading = computed(() => tokenStore.loadingRegistry)
+const balancesError = computed(() => tokenStore.balancesError)
+const registryError = computed(() => tokenStore.registryError)
+const registrySearchResults = computed(() => tokenStore.searchResults)
+const fetchingTokenInfo = computed(() => tokenStore.fetchingTokenInfo)
+
+// Methods can be accessed directly from store
 const { 
-  loading: registryLoading, 
-  error: registryError, 
-  searchQuery, 
-  searchResults: registrySearchResults, 
-  fetchingTokenInfo,
-  searchTokens, 
+  searchTokens,
   preloadRegistry,
   fetchTokenInfo
-} = tokenRegistry
+} = tokenStore
 
 const searchError = ref(null)
 const searchLoading = ref(false)
@@ -376,7 +384,8 @@ const displayTokens = computed(() => {
     return localSearchResults.value
   }
   // Show wallet balances by default
-  return walletBalances.value || []
+  const balances = walletBalances.value
+  return Array.isArray(balances) ? balances : []
 })
 
 // Computed loading state

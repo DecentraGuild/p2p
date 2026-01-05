@@ -47,13 +47,15 @@ export function validateSolanaAddress(address) {
  * @param {number} options.min - Minimum allowed value (default: 0)
  * @param {number|null} options.max - Maximum allowed value (default: null)
  * @param {number|null} options.balance - Available balance to check against
+ * @param {number|null} options.decimals - Token decimals (for validation)
  * @returns {{valid: boolean, error: string|null}} Validation result
  */
 export function validateAmount(amount, options = {}) {
   const {
     min = 0,
     max = null,
-    balance = null
+    balance = null,
+    decimals = null
   } = options
   
   if (!amount && amount !== 0) {
@@ -63,12 +65,38 @@ export function validateAmount(amount, options = {}) {
     }
   }
   
+  const amountStr = typeof amount === 'string' ? amount : amount.toString()
   const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
   
   if (isNaN(numAmount)) {
     return {
       valid: false,
       error: 'Invalid amount format'
+    }
+  }
+  
+  // For tokens with 0 decimals, ensure the amount is a whole number
+  if (decimals === 0) {
+    // Check if the string representation contains a decimal point
+    if (amountStr.includes('.')) {
+      // Check if there are any non-zero digits after the decimal point
+      const decimalPart = amountStr.split('.')[1]
+      if (decimalPart && decimalPart.length > 0) {
+        // Check if there are any non-zero digits
+        if (decimalPart.split('').some(digit => digit !== '0')) {
+          return {
+            valid: false,
+            error: 'This token does not support decimals. Please enter a whole number.'
+          }
+        }
+      }
+    }
+    // Also ensure the numeric value is an integer
+    if (!Number.isInteger(numAmount)) {
+      return {
+        valid: false,
+        error: 'This token does not support decimals. Please enter a whole number.'
+      }
     }
   }
   

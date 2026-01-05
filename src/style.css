@@ -57,6 +57,83 @@
   .input-field[type="number"] {
     -moz-appearance: textfield;
   }
+
+  /* Vue DatePicker Custom Styling */
+  .datetime-picker {
+    @apply w-full;
+  }
+
+  .datetime-picker .dp__input_wrap input {
+    @apply bg-card-bg border border-border-color rounded-xl px-3 py-2 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-primary-color focus:ring-1 focus:ring-primary-color/20 transition-all min-h-[44px];
+    font-size: 16px;
+  }
+
+  @media (min-width: 640px) {
+    .datetime-picker .dp__input_wrap input {
+      font-size: 0.875rem;
+    }
+  }
+
+  .datetime-picker .dp__menu {
+    @apply bg-card-bg border border-border-color rounded-xl shadow-xl;
+  }
+
+  .datetime-picker .dp__calendar_header_item {
+    @apply text-text-primary;
+  }
+
+  .datetime-picker .dp__calendar_header_item:hover {
+    @apply bg-secondary-bg;
+  }
+
+  .datetime-picker .dp__calendar_item {
+    @apply text-text-secondary;
+  }
+
+  .datetime-picker .dp__calendar_item:hover {
+    @apply bg-secondary-bg text-text-primary;
+  }
+
+  .datetime-picker .dp__calendar_item.dp__active_date {
+    @apply bg-primary-color text-text-primary;
+  }
+
+  .datetime-picker .dp__calendar_item.dp__range_start,
+  .datetime-picker .dp__calendar_item.dp__range_end {
+    @apply bg-primary-color text-text-primary;
+  }
+
+  .datetime-picker .dp__calendar_item.dp__today {
+    @apply border-primary-color;
+  }
+
+  .datetime-picker .dp__time_input {
+    @apply bg-card-bg border border-border-color text-text-primary;
+  }
+
+  .datetime-picker .dp__time_input:focus {
+    @apply border-primary-color ring-1 ring-primary-color/20;
+  }
+
+  .datetime-picker .dp__time_col_reg {
+    @apply text-text-primary;
+  }
+
+  .datetime-picker .dp__arrow_top {
+    @apply border-b-border-color;
+  }
+
+  .datetime-picker .dp__arrow_bottom {
+    @apply border-t-border-color;
+  }
+
+  .datetime-picker .dp__inner_nav {
+    @apply text-text-primary hover:bg-secondary-bg;
+  }
+
+  .datetime-picker .dp__month_year_select {
+    @apply text-text-primary hover:bg-secondary-bg;
+  }
   
   .card {
     @apply bg-card-bg border border-border-color rounded-[20px] p-4 shadow-card;

@@ -53,12 +53,13 @@
         <ToggleSwitch v-model="localExpire" />
       </div>
 
-      <!-- Expire Date Input -->
+      <!-- Expire Date/Time Picker -->
       <div v-if="localExpire" class="ml-0 sm:ml-4">
-        <input
+        <DateTimePicker
           v-model="localExpireDate"
-          type="datetime-local"
-          class="input-field w-full min-h-[44px]"
+          :show-current-time="true"
+          :min-minutes-from-now="5"
+          @validation-change="handleExpireValidation"
         />
       </div>
 
@@ -96,6 +97,7 @@
 import { ref, computed } from 'vue'
 import { Icon } from '@iconify/vue'
 import ToggleSwitch from './ToggleSwitch.vue'
+import DateTimePicker from './DateTimePicker.vue'
 
 const props = defineProps({
   direct: {
@@ -175,4 +177,10 @@ const localSlippage = computed({
   get: () => props.slippage,
   set: (val) => emit('update:slippage', val)
 })
+
+// Handle expiration date validation
+const expireValidationError = ref(null)
+function handleExpireValidation(validation) {
+  expireValidationError.value = validation.error
+}
 </script>

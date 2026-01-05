@@ -56,6 +56,18 @@ export function useWalletBalances(options = {}) {
         }
       )
 
+      // DEBUG: Only log if debug mode is enabled (via window.debugWalletBalances.debugMode = true)
+      if (typeof window !== 'undefined' && window.debugWalletBalances?.debugMode) {
+        console.group('🔍 Raw Token Accounts Response')
+        console.log('Total token accounts:', tokenAccounts.value.length)
+        if (tokenAccounts.value.length > 0) {
+          console.log('Sample account structure:', JSON.stringify(tokenAccounts.value[0], null, 2))
+          console.log('Available fields in parsedInfo:', Object.keys(tokenAccounts.value[0].account?.data?.parsed?.info || {}))
+          console.log('Note: Balance fetch only provides: mint, decimals, balance. No name/symbol/image.')
+        }
+        console.groupEnd()
+      }
+
       const tokenBalances = []
 
       for (const accountInfo of tokenAccounts.value) {
@@ -323,6 +335,83 @@ export function useWalletBalances(options = {}) {
     }, { immediate: true })
   }
 
+  /**
+   * DEBUG: Inspect what data is available from a mint account
+   * This can help identify if metadata is already available without fetching
+   */
+  const inspectMintAccount = async (mintAddress) => {
+    try {
+      console.group(`🔍 Inspecting Mint Account: ${mintAddress}`)
+      
+      const mintPublicKey = new PublicKey(mintAddress)
+      
+      // Get parsed account info for the mint
+      const accountInfo = await connection.getParsedAccountInfo(mintPublicKey)
+      
+      console.log('Account Info Structure:', {
+        exists: !!accountInfo.value,
+        owner: accountInfo.value?.owner?.toString(),
+        executable: accountInfo.value?.executable,
+        lamports: accountInfo.value?.lamports,
+        dataType: accountInfo.value?.data ? (typeof accountInfo.value.data === 'string' ? 'string' : 'parsed' ? 'parsed' : 'buffer') : null,
+        dataKeys: accountInfo.value?.data && typeof accountInfo.value.data === 'object' ? Object.keys(accountInfo.value.data) : null
+      })
+      
+      if (accountInfo.value?.data && 'parsed' in accountInfo.value.data) {
+        console.log('Parsed Data:', accountInfo.value.data.parsed)
+        console.log('Parsed Info Keys:', Object.keys(accountInfo.value.data.parsed.info || {}))
+        console.log('Full Parsed Info:', JSON.stringify(accountInfo.value.data.parsed.info, null, 2))
+      } else if (accountInfo.value?.data) {
+        console.log('Raw Data (not parsed):', accountInfo.value.data)
+      }
+      
+      // Also check what getParsedTokenAccountsByOwner returns for this specific mint
+      if (connected.value && publicKey.value) {
+        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
+          publicKey.value,
+          { mint: mintPublicKey }
+        )
+        
+        console.log('Token Accounts for this mint:', tokenAccounts.value.length)
+        if (tokenAccounts.value.length > 0) {
+          console.log('Token Account Structure:', JSON.stringify(tokenAccounts.value[0], null, 2))
+        }
+      }
+      
+      console.groupEnd()
+      
+      return accountInfo
+    } catch (err) {
+      console.error('Error inspecting mint account:', err)
+      console.groupEnd()
+      return null
+    }
+  }
+
+  // Expose debug function to window for easy console access
+  if (typeof window !== 'undefined') {
+    window.debugWalletBalances = {
+      debugMode: false, // Set to true to enable verbose logging
+      inspectMintAccount,
+      inspectRawResponse: async () => {
+        if (connected.value && publicKey.value) {
+          console.log('Fetching raw token accounts response...')
+          await fetchBalances()
+        } else {
+          console.warn('Wallet not connected')
+        }
+      },
+      enableDebug: () => {
+        window.debugWalletBalances.debugMode = true
+        console.log('✅ Debug mode enabled. Balance fetches will show detailed logs.')
+      },
+      disableDebug: () => {
+        window.debugWalletBalances.debugMode = false
+        console.log('❌ Debug mode disabled.')
+      }
+    }
+  }
+
   return {
     balances: computed(() => balances.value),
     loading: computed(() => loading.value),
@@ -331,6 +420,7 @@ export function useWalletBalances(options = {}) {
     fetchBalances,
     getTokenBalance,
     getTokenInfo,
-    fetchSingleTokenBalance
+    fetchSingleTokenBalance,
+    inspectMintAccount // Expose for debugging
   }
 }

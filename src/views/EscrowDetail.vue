@@ -421,7 +421,7 @@ import { useEscrowTransactions } from '../composables/useEscrowTransactions'
 import { useSolanaConnection } from '../composables/useSolanaConnection'
 import { useTokenRegistry } from '../composables/useTokenRegistry'
 import { useWalletBalances } from '../composables/useWalletBalances'
-import { formatBalance, truncateAddress, formatTimestamp, fromSmallestUnits, toSmallestUnits } from '../utils/formatters'
+import { formatBalance, truncateAddress, formatTimestamp, fromSmallestUnits, toSmallestUnits, formatDecimals } from '../utils/formatters'
 import { DECIMAL_CONSTANTS } from '../utils/constants'
 import { fetchEscrowByAddress } from '../utils/escrowTransactions'
 import { calculateExchangeCosts } from '../utils/transactionCosts'
@@ -471,7 +471,7 @@ const loadingExchangeCosts = ref(false)
 // Computed
 const remainingPercentage = computed(() => {
   if (!escrow.value) return 0
-  return ((escrow.value.depositRemaining / escrow.value.depositAmount) * 100).toFixed(1)
+  return formatDecimals((escrow.value.depositRemaining / escrow.value.depositAmount) * 100)
 })
 
 const canCancel = computed(() => {
@@ -592,7 +592,7 @@ const getPlaceholderForDecimals = (decimals) => {
 const setFillPercentage = (percentage) => {
   fillAmountPercent.value = percentage
   const amount = (maxFillAmount.value * percentage) / 100
-  fillAmount.value = amount.toFixed(Math.min(escrow.value.requestToken.decimals, 6))
+  fillAmount.value = formatDecimals(amount)
 }
 
 const updateFillAmountFromInput = () => {
@@ -614,7 +614,7 @@ const updateFillAmountFromInput = () => {
 watch(fillAmountPercent, (newPercent) => {
   if (escrow.value && escrow.value.allowPartialFill) {
     const amount = (maxFillAmount.value * newPercent) / 100
-    fillAmount.value = amount.toFixed(Math.min(escrow.value.requestToken.decimals, 6))
+    fillAmount.value = formatDecimals(amount)
   }
 })
 
@@ -666,7 +666,7 @@ watch(requestTokenBalance, (newBalance) => {
   if (escrow.value && escrow.value.allowPartialFill && newBalance > 0) {
     // Update fill amount when balance loads
     const amount = Math.min(maxFillAmount.value, newBalance)
-    fillAmount.value = amount.toFixed(Math.min(escrow.value.requestToken.decimals, 6))
+    fillAmount.value = formatDecimals(amount)
     if (maxFillAmount.value > 0) {
       fillAmountPercent.value = Math.min(100, (amount / maxFillAmount.value) * 100)
     }

@@ -73,17 +73,25 @@
                 class="flex items-center justify-between text-xs"
               >
                 <span class="text-text-secondary">{{ item.label }}</span>
-                <span class="text-text-primary font-medium">{{ item.amount.toFixed(4) }} SOL</span>
+                <span class="text-text-primary font-medium">{{ formatDecimals(item.amount) }} SOL</span>
               </div>
             </div>
             <div class="pt-1.5 border-t border-border-color/50 flex items-center justify-between">
               <span class="text-text-primary font-semibold">Total</span>
-              <span class="text-text-primary font-bold">{{ costBreakdown.total.toFixed(4) }} SOL</span>
+              <span class="text-text-primary font-bold">{{ formatDecimals(costBreakdown.total) }} SOL</span>
+            </div>
+            <div class="text-xs pt-1">
+              <span class="text-green-400">{{ formatDecimals(costBreakdown.recoverable) }} SOL recoverable</span>
+              <span class="mx-1 text-text-secondary">•</span>
+              <span class="text-text-secondary">{{ formatDecimals(costBreakdown.nonRecoverable) }} SOL fee</span>
             </div>
             <div class="text-xs text-text-muted pt-1">
-              <span class="text-green-400">{{ costBreakdown.recoverable.toFixed(4) }} SOL recoverable</span>
-              <span class="mx-1">•</span>
-              <span>{{ costBreakdown.nonRecoverable.toFixed(4) }} SOL fee</span>
+              <button
+                @click="showPricing = true"
+                class="text-primary-color hover:underline inline"
+              >
+                See pricelist
+              </button>
             </div>
           </div>
           <div v-else-if="loadingCosts" class="text-xs text-text-muted flex items-center gap-2">
@@ -122,7 +130,7 @@ import PricingModal from '../components/PricingModal.vue'
 import { useEscrowStore } from '../stores/escrow'
 import { useEscrowTransactions } from '../composables/useEscrowTransactions'
 import { useSolanaConnection } from '../composables/useSolanaConnection'
-import { toSmallestUnits } from '../utils/formatters'
+import { toSmallestUnits, formatDecimals } from '../utils/formatters'
 import { CONTRACT_FEE_ACCOUNT } from '../utils/constants'
 import { calculateEscrowCreationCosts, formatCostBreakdown } from '../utils/transactionCosts'
 

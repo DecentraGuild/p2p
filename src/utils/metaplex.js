@@ -6,6 +6,17 @@
 import { PublicKey, Connection } from '@solana/web3.js'
 import { TokenListProvider } from '@solana/spl-token-registry'
 
+/**
+ * Clean and trim a string, removing all whitespace, null bytes, and non-printable characters
+ * @param {string|null|undefined} str - String to clean
+ * @returns {string|null} Cleaned string or null
+ */
+function cleanTokenString(str) {
+  if (!str || typeof str !== 'string') return null
+  // Remove null bytes, non-printable characters, and trim whitespace
+  return str.replace(/\0/g, '').replace(/[\x00-\x1F\x7F-\x9F]/g, '').trim() || null
+}
+
 // Metaplex Token Metadata Program ID
 const TOKEN_METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s')
 
@@ -42,8 +53,8 @@ async function loadTokenRegistry() {
       tokenRegistryMap = new Map()
       for (const token of mainnetTokens) {
         tokenRegistryMap.set(token.address, {
-          name: token.name?.trim() || null,
-          symbol: token.symbol?.trim() || null,
+          name: cleanTokenString(token.name),
+          symbol: cleanTokenString(token.symbol),
           image: token.logoURI || null,
           decimals: token.decimals || null
         })
@@ -164,8 +175,8 @@ export async function fetchTokenMetadata(connection, mintAddress, useRegistryFir
       // If registry has complete data with image, return it immediately (no RPC call needed)
       if (registryData?.image) {
         return {
-          name: registryData.name,
-          symbol: registryData.symbol,
+          name: cleanTokenString(registryData.name),
+          symbol: cleanTokenString(registryData.symbol),
           image: registryData.image,
           uri: null
         }
@@ -178,15 +189,23 @@ export async function fetchTokenMetadata(connection, mintAddress, useRegistryFir
   // Merge registry and Metaplex data if both available
   if (registryData && metaplexData) {
     return {
-      name: metaplexData.name || registryData.name,
-      symbol: metaplexData.symbol || registryData.symbol,
+      name: cleanTokenString(metaplexData.name || registryData.name),
+      symbol: cleanTokenString(metaplexData.symbol || registryData.symbol),
       image: metaplexData.image || registryData.image,
       uri: metaplexData.uri
     }
   }
   
-  // Return whichever data is available
-  return metaplexData || registryData
+  // Return whichever data is available, ensuring names/symbols are cleaned
+  const result = metaplexData || registryData
+  if (result) {
+    return {
+      ...result,
+      name: cleanTokenString(result.name),
+      symbol: cleanTokenString(result.symbol)
+    }
+  }
+  return null
 }
 
 /**
@@ -266,13 +285,13 @@ async function fetchTokenMetadataFromChain(connection, mintAddress) {
     // Read name
     const nameLength = data.readUInt32LE(offset)
     offset += 4
-    const name = data.slice(offset, offset + nameLength).toString('utf8').trim()
+    const name = cleanTokenString(data.slice(offset, offset + nameLength).toString('utf8'))
     offset += nameLength
     
     // Read symbol
     const symbolLength = data.readUInt32LE(offset)
     offset += 4
-    const symbol = data.slice(offset, offset + symbolLength).toString('utf8').trim()
+    const symbol = cleanTokenString(data.slice(offset, offset + symbolLength).toString('utf8'))
     offset += symbolLength
     
     // Read URI (points to JSON metadata with image)
@@ -299,8 +318,8 @@ async function fetchTokenMetadataFromChain(connection, mintAddress) {
         } catch {
           // Invalid URL, skip fetching
           return {
-            name: name || null,
-            symbol: symbol || null,
+            name: cleanTokenString(name),
+            symbol: cleanTokenString(symbol),
             image: null,
             uri: uri || null
           }
@@ -358,8 +377,8 @@ async function fetchTokenMetadataFromChain(connection, mintAddress) {
     }
     
     return {
-      name: name || null,
-      symbol: symbol || null,
+      name: cleanTokenString(name),
+      symbol: cleanTokenString(symbol),
       image: image || null,
       uri: uri || null
     }

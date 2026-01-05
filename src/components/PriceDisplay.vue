@@ -67,6 +67,7 @@
 import { computed } from 'vue'
 import { Icon } from '@iconify/vue'
 import TokenAmountDisplay from './TokenAmountDisplay.vue'
+import { formatDecimals } from '../utils/formatters'
 
 const props = defineProps({
   offerToken: {
@@ -89,17 +90,17 @@ const props = defineProps({
 
 const calculatedPrice = computed(() => {
   if (!props.offerAmount || !props.requestAmount || parseFloat(props.offerAmount) === 0) {
-    return '0.000000000'
+    return '0'
   }
   const ratio = parseFloat(props.requestAmount) / parseFloat(props.offerAmount)
-  return ratio.toFixed(9)
+  return formatDecimals(ratio)
 })
 
 const reversePrice = computed(() => {
   if (!props.offerAmount || !props.requestAmount || parseFloat(props.requestAmount) === 0) {
-    return '0.000000000'
+    return '0'
   }
   const ratio = parseFloat(props.offerAmount) / parseFloat(props.requestAmount)
-  return ratio.toFixed(9)
+  return formatDecimals(ratio)
 })
 </script>

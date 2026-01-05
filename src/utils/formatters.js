@@ -3,6 +3,70 @@
  */
 
 /**
+ * Format a number with dynamic decimal places based on value range
+ * Supports both positive and negative values
+ * @param {number} value - Number to format
+ * @returns {string} Formatted number string
+ * 
+ * Decimal rules:
+ * - 0 - 1: 6 digits
+ * - 1 - 10: 4 digits
+ * - 10 - 100: 2 digits
+ * - 100 - 1000: 1 digit
+ * - 1000+: 0 digits
+ * 
+ * Special rule: If there are no non-zero digits after the decimal point
+ * (only trailing zeros), automatically use only 1 decimal place.
+ */
+export function formatDecimals(value) {
+  if (value === null || value === undefined || isNaN(value)) {
+    return '0'
+  }
+  
+  // Handle zero
+  if (value === 0) {
+    return '0'
+  }
+  
+  // Get absolute value for range checking
+  const absValue = Math.abs(value)
+  const sign = value < 0 ? '-' : ''
+  
+  // Determine decimal places based on absolute value
+  let decimals
+  if (absValue < 1) {
+    decimals = 6
+  } else if (absValue < 10) {
+    decimals = 4
+  } else if (absValue < 100) {
+    decimals = 2
+  } else if (absValue < 1000) {
+    decimals = 1
+  } else {
+    decimals = 0
+  }
+  
+  // Format the number
+  let formatted = absValue.toFixed(decimals)
+  
+  // If decimals > 0, check if there are only trailing zeros after decimal point
+  // If so, reduce to 1 decimal place
+  if (decimals > 0) {
+    const parts = formatted.split('.')
+    if (parts.length === 2) {
+      const decimalPart = parts[1]
+      // Check if all digits in decimal part are zeros
+      if (/^0+$/.test(decimalPart)) {
+        // Only trailing zeros, use 1 decimal place instead
+        formatted = absValue.toFixed(1)
+      }
+    }
+  }
+  
+  return `${sign}${formatted}`
+}
+
+/**
  * Format a token balance for display
  * @param {number|null|undefined} balance - Token balance
  * @param {number} decimals - Number of decimal places (default: 4, or token decimals if provided)
@@ -16,15 +80,13 @@ export function formatBalance(balance, decimals = 4, showLoading = true) {
   if (balance === 0) return '0.00'
   
   if (balance >= 1000000) {
-    return `${(balance / 1000000).toFixed(2)}M`
+    return `${formatDecimals(balance / 1000000)}M`
   } else if (balance >= 1000) {
-    return `${(balance / 1000).toFixed(2)}K`
+    return `${formatDecimals(balance / 1000)}K`
   }
   
-  // If decimals is provided (e.g., from token), use it but cap at 6 for readability
-  // Otherwise use the default (4)
-  const displayDecimals = decimals && decimals > 0 ? Math.min(decimals, 6) : 4
-  return balance.toFixed(displayDecimals)
+  // Use formatDecimals for consistent decimal formatting
+  return formatDecimals(balance)
 }
 
 /**
@@ -96,14 +158,14 @@ export function formatLargeNumber(num, decimals = 2) {
   const sign = num < 0 ? '-' : ''
   
   if (absNum >= 1e9) {
-    return `${sign}${(absNum / 1e9).toFixed(decimals)}B`
+    return `${sign}${formatDecimals(absNum / 1e9)}B`
   } else if (absNum >= 1e6) {
-    return `${sign}${(absNum / 1e6).toFixed(decimals)}M`
+    return `${sign}${formatDecimals(absNum / 1e6)}M`
   } else if (absNum >= 1e3) {
-    return `${sign}${(absNum / 1e3).toFixed(decimals)}K`
+    return `${sign}${formatDecimals(absNum / 1e3)}K`
   }
   
-  return `${sign}${absNum.toFixed(decimals)}`
+  return formatDecimals(num)
 }
 
 /**

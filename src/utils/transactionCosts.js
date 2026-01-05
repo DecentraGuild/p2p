@@ -64,42 +64,28 @@ export async function calculateEscrowCreationCosts({
 export function formatCostBreakdown(costs) {
   const items = []
   
-  // Escrow rent (always present)
+  // Group all recoverable token accounts together (first)
+  const totalTokenAccountCost = costs.depositAtaCost + costs.requestAtaCost
+  if (totalTokenAccountCost > 0) {
+    items.push({
+      label: 'Token accounts (recoverable)',
+      amount: totalTokenAccountCost,
+      recoverable: true
+    })
+  }
+
+  // Escrow rent (second)
   items.push({
     label: 'Escrow accounts (recoverable)',
     amount: costs.escrowRent,
     recoverable: true
   })
 
-  // Deposit ATA cost (if needed)
-  if (costs.depositAtaCost > 0) {
-    items.push({
-      label: 'Deposit token account (recoverable)',
-      amount: costs.depositAtaCost,
-      recoverable: true
-    })
-  }
-
-  // Request ATA cost (if needed)
-  if (costs.requestAtaCost > 0) {
-    items.push({
-      label: 'Request token account (recoverable)',
-      amount: costs.requestAtaCost,
-      recoverable: true
-    })
-  }
-
-  // Contract fee (always present)
+  // Group contract fee + platform fee together (third)
+  const totalFees = costs.contractFee + costs.platformFee
   items.push({
-    label: 'Contract fee',
-    amount: costs.contractFee,
-    recoverable: false
-  })
-
-  // Platform fee (always present)
-  items.push({
-    label: 'Platform fee (per contract trigger)',
-    amount: costs.platformFee,
+    label: 'Escrow fee',
+    amount: totalFees,
     recoverable: false
   })
 

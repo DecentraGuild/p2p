@@ -117,10 +117,16 @@ export function useWalletBalances(options = {}) {
       )
 
       if (metadata) {
+        // Helper function to clean token strings (remove null bytes, non-printable chars, trim)
+        const cleanTokenString = (str) => {
+          if (!str || typeof str !== 'string') return null
+          return str.replace(/\0/g, '').replace(/[\x00-\x1F\x7F-\x9F]/g, '').trim() || null
+        }
+        
         return {
           ...token,
-          name: metadata.name || token.name,
-          symbol: metadata.symbol || token.symbol,
+          name: cleanTokenString(metadata.name || token.name),
+          symbol: cleanTokenString(metadata.symbol || token.symbol),
           image: metadata.image || token.image
         }
       }

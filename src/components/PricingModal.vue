@@ -51,11 +51,11 @@
           <div class="space-y-2">
             <div class="flex items-center justify-between py-2 border-b border-border-color/50">
               <span class="text-sm text-text-secondary">$5/month</span>
-              <span class="text-sm font-medium text-text-primary">10 escrows free</span>
+              <span class="text-sm font-medium text-text-primary">5 escrows free, 20% discount on rest</span>
             </div>
             <div class="flex items-center justify-between py-2 border-b border-border-color/50">
               <span class="text-sm text-text-secondary">$10/month</span>
-              <span class="text-sm font-medium text-text-primary">50 escrows free</span>
+              <span class="text-sm font-medium text-text-primary">10 escrows free, 50% discount on rest</span>
             </div>
             <div class="flex items-center justify-between py-2 border-b border-border-color/50">
               <span class="text-sm text-text-secondary">$25/month</span>

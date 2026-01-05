@@ -91,7 +91,7 @@ import RequestTokenSelector from './RequestTokenSelector.vue'
 import BaseTokenImage from './BaseTokenImage.vue'
 import { useWalletBalances } from '../composables/useWalletBalances'
 import { usePercentageButtons } from '../composables/usePercentageButtons'
-import { formatBalance as formatBalanceUtil, truncateAddress } from '../utils/formatters'
+import { formatBalance as formatBalanceUtil, truncateAddress, formatDecimals } from '../utils/formatters'
 import { DECIMAL_CONSTANTS } from '../utils/constants'
 
 const props = defineProps({
@@ -160,11 +160,10 @@ const updateAmount = () => {
 const setPercentage = (percentage) => {
   if (!props.token || tokenBalance.value <= 0) return
   
-  const decimals = props.token.decimals || 9
   const amount = tokenBalance.value * percentage
   
-  // Format amount based on token decimals
-  const formattedAmount = amount.toFixed(Math.min(decimals, 6))
+  // Format amount using formatDecimals utility
+  const formattedAmount = formatDecimals(amount)
   localAmount.value = formattedAmount
   updateAmount()
 }

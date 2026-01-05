@@ -4,6 +4,7 @@
  */
 
 import { computed } from 'vue'
+import { formatDecimals } from '../utils/formatters'
 
 export function usePercentageButtons(options = {}) {
   const {
@@ -26,10 +27,8 @@ export function usePercentageButtons(options = {}) {
     
     const amount = maxAmount * percentage
     
-    // Format amount based on token decimals
-    // For display, we'll use appropriate precision
-    const formattedAmount = amount.toFixed(Math.min(decimals, 6))
-    return formattedAmount
+    // Format amount using formatDecimals utility
+    return formatDecimals(amount)
   }
 
   return {

@@ -49,10 +49,16 @@ async function loadTokenRegistryList() {
       const mainnetTokens = tokenList.filterByClusterSlug('mainnet-beta').getList()
       
       // Convert to array format for easier searching
+      // Helper function to clean token strings (remove null bytes, non-printable chars, trim)
+      const cleanTokenString = (str) => {
+        if (!str || typeof str !== 'string') return null
+        return str.replace(/\0/g, '').replace(/[\x00-\x1F\x7F-\x9F]/g, '').trim() || null
+      }
+      
       tokenRegistryList = mainnetTokens.map(token => ({
         mint: token.address,
-        name: token.name?.trim() || null,
-        symbol: token.symbol?.trim() || null,
+        name: cleanTokenString(token.name),
+        symbol: cleanTokenString(token.symbol),
         image: token.logoURI || null,
         decimals: token.decimals || null
       }))
@@ -118,10 +124,16 @@ async function fetchTokenInfo(mintAddress) {
       decimals = 9 // Default fallback
     }
     
+    // Helper function to clean token strings
+    const cleanTokenString = (str) => {
+      if (!str || typeof str !== 'string') return null
+      return str.replace(/\0/g, '').replace(/[\x00-\x1F\x7F-\x9F]/g, '').trim() || null
+    }
+    
     return {
       mint: mintAddress,
-      name: (metadata?.name || registryToken?.name || null)?.trim() || null,
-      symbol: (metadata?.symbol || registryToken?.symbol || null)?.trim() || null,
+      name: cleanTokenString(metadata?.name || registryToken?.name || null),
+      symbol: cleanTokenString(metadata?.symbol || registryToken?.symbol || null),
       image: metadata?.image || registryToken?.image || null,
       decimals: decimals
     }
@@ -162,17 +174,45 @@ export function useTokenRegistry() {
       const registry = await loadTokenRegistryList()
       const lowerQuery = query.toLowerCase().trim()
       
-      // Search by symbol, name, or mint address
-      const results = registry.filter(token => {
-        const symbolMatch = token.symbol?.toLowerCase().includes(lowerQuery)
-        const nameMatch = token.name?.toLowerCase().includes(lowerQuery)
-        const mintMatch = token.mint.toLowerCase().includes(lowerQuery)
+      // Helper to calculate match priority (higher = better match)
+      const getMatchPriority = (token) => {
+        const symbol = token.symbol?.toLowerCase() || ''
+        const name = token.name?.toLowerCase() || ''
+        const mint = token.mint.toLowerCase()
         
-        return symbolMatch || nameMatch || mintMatch
-      })
+        // Exact symbol match (highest priority)
+        if (symbol === lowerQuery) return 1000
+        // Exact name match
+        if (name === lowerQuery) return 900
+        // Symbol starts with query
+        if (symbol.startsWith(lowerQuery)) return 800
+        // Name starts with query
+        if (name.startsWith(lowerQuery)) return 700
+        // Symbol contains query
+        if (symbol.includes(lowerQuery)) return 600
+        // Name contains query
+        if (name.includes(lowerQuery)) return 500
+        // Mint contains query (lowest priority)
+        if (mint.includes(lowerQuery)) return 100
+        
+        return 0
+      }
       
-      // Limit results to 50 for performance
-      searchResults.value = results.slice(0, 50)
+      // Search and score all tokens
+      const scoredResults = registry
+        .map(token => ({
+          token,
+          priority: getMatchPriority(token)
+        }))
+        .filter(({ priority }) => priority > 0) // Only include matches
+        .sort((a, b) => b.priority - a.priority) // Sort by priority descending
+      
+      // Extract tokens, prioritizing exact matches
+      const results = scoredResults.map(({ token }) => token)
+      
+      // Limit results to 100 to ensure we get exact matches even if there are many partial matches
+      // The component will further filter and limit to 50
+      searchResults.value = results.slice(0, 100)
     } catch (err) {
       console.error('Error searching tokens:', err)
       error.value = err.message || 'Failed to search tokens'

@@ -28,6 +28,7 @@ import {
   PhantomWalletAdapter,
   SolflareWalletAdapter,
 } from '@solana/wallet-adapter-wallets'
+import { initializeWalletDetection } from './utils/walletDetection'
 
 // Optimized wallet configuration for mobile support
 // solana-wallets-vue automatically includes:
@@ -36,6 +37,10 @@ import {
 // 
 // Mobile Wallet Adapter is automatically enabled on Android devices
 // Wallet Standard wallets (like Backpack) are automatically discovered
+// 
+// Note: On mobile, especially in in-app browsers, Wallet Standard detection
+// may be delayed. We initialize wallet detection early to ensure wallets
+// are available when needed.
 const walletOptions = {
   wallets: [
     new PhantomWalletAdapter(),
@@ -43,10 +48,22 @@ const walletOptions = {
     // Note: Backpack and other Wallet Standard wallets are automatically detected
     // via the Wallet Standard integration in solana-wallets-vue
     // No need to explicitly add BackpackWalletAdapter - it's auto-discovered
+    // 
+    // For mobile support, we initialize wallet detection early to ensure
+    // Wallet Standard wallets are detected even in in-app browsers
   ],
   autoConnect: true,
   // localStorageKey is used to persist wallet selection across sessions
   localStorageKey: 'walletName',
+}
+
+// Initialize wallet detection early for mobile devices
+// This ensures Wallet Standard wallets (like Backpack) are detected
+// even in in-app browsers where detection might be delayed
+if (typeof window !== 'undefined') {
+  initializeWalletDetection().catch(err => {
+    console.warn('[Wallet Detection] Failed to initialize wallet detection:', err)
+  })
 }
 
 const app = createApp(App)

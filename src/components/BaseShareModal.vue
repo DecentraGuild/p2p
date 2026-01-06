@@ -8,7 +8,7 @@
         </button>
       </div>
       
-      <div class="flex-1 flex flex-col justify-center space-y-4 sm:space-y-4">
+      <div class="flex-1 flex flex-col space-y-4 sm:space-y-4 pt-4">
         <div v-if="showUrl">
           <label class="text-sm text-text-muted mb-2 block">{{ urlLabel }}</label>
           <div class="flex gap-2">
@@ -31,12 +31,12 @@
         
         <div v-if="showQRCode" class="flex flex-col items-center">
           <label class="text-sm text-text-muted mb-2 block">{{ qrLabel }}</label>
-          <div class="flex justify-center p-3 sm:p-4 bg-white rounded-lg w-fit mx-auto">
+          <div class="flex justify-center p-3 sm:p-4 bg-white rounded-lg w-[80%] sm:w-fit mx-auto">
             <canvas 
               ref="qrCanvas" 
               :width="qrSize" 
               :height="qrSize"
-              class="w-full max-w-[280px] sm:max-w-none h-auto"
+              class="w-full h-auto"
             ></canvas>
           </div>
         </div>

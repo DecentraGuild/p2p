@@ -487,6 +487,21 @@ const loadEscrow = async () => {
       tokenRegistry.fetchTokenInfo(escrowAccount.requestToken.toString())
     ])
 
+    // Debug logging for decimal issues
+    console.debug('Escrow token info:', {
+      depositToken: {
+        mint: escrowAccount.depositToken.toString(),
+        decimals: depositTokenInfo.decimals,
+        symbol: depositTokenInfo.symbol,
+        rawAmount: escrowAccount.tokensDepositInit.toString()
+      },
+      requestToken: {
+        mint: escrowAccount.requestToken.toString(),
+        decimals: requestTokenInfo.decimals,
+        symbol: requestTokenInfo.symbol
+      }
+    })
+
     // Calculate amounts
     const depositRemaining = fromSmallestUnits(
       escrowAccount.tokensDepositRemaining.toString(),
@@ -496,6 +511,14 @@ const loadEscrow = async () => {
       escrowAccount.tokensDepositInit.toString(),
       depositTokenInfo.decimals
     )
+    
+    console.debug('Escrow amounts calculated:', {
+      depositInitialRaw: escrowAccount.tokensDepositInit.toString(),
+      depositInitialDisplay: depositInitial,
+      depositRemainingRaw: escrowAccount.tokensDepositRemaining.toString(),
+      depositRemainingDisplay: depositRemaining,
+      decimalsUsed: depositTokenInfo.decimals
+    })
     const requestAmount = depositRemaining * escrowAccount.price
 
     // Determine status
@@ -545,6 +568,16 @@ const loadEscrow = async () => {
       allowPartialFill: escrowAccount.allowPartialFill,
       whitelist: escrowAccount.whitelist?.toString() || null,
       status
+    }
+
+    // Auto-open share modal if share query parameter is present
+    if (route.query.share === 'true') {
+      // Remove the query parameter from URL
+      router.replace({ path: route.path, query: {} })
+      // Open share modal after a small delay to ensure UI is ready
+      setTimeout(() => {
+        showShareModal()
+      }, 100)
     }
   } catch (err) {
     console.error('Failed to load escrow:', err)

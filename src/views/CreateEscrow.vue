@@ -132,7 +132,9 @@ import { useEscrowTransactions } from '../composables/useEscrowTransactions'
 import { useSolanaConnection } from '../composables/useSolanaConnection'
 import { toSmallestUnits, formatDecimals } from '../utils/formatters'
 import { CONTRACT_FEE_ACCOUNT } from '../utils/constants'
+import { ESCROW_PROGRAM_ID } from '../utils/constants/escrow'
 import { calculateEscrowCreationCosts, formatCostBreakdown } from '../utils/transactionCosts'
+import { deriveEscrowAccounts } from '../utils/escrowTransactions'
 
 const router = useRouter()
 const escrowStore = useEscrowStore()
@@ -374,11 +376,20 @@ const handleCreateEscrow = async () => {
     // Initialize escrow
     const signature = await initializeEscrow(params)
 
+    // Derive escrow address to navigate to details page
+    const makerPubkey = publicKey.value
+    const seedBN = seed instanceof BN ? seed : new BN(seed.toString())
+    const programId = new PublicKey(ESCROW_PROGRAM_ID)
+    const { escrow: escrowPubkey } = deriveEscrowAccounts(makerPubkey, seedBN, programId)
+    
     // Reset form on success
     escrowStore.resetForm()
 
-    // Navigate to manage page or show success message
-    router.push('/manage')
+    // Navigate to escrow details page with share query parameter to auto-open share modal
+    router.push({
+      path: `/escrow/${escrowPubkey.toString()}`,
+      query: { share: 'true' }
+    })
   } catch (err) {
     console.error('Failed to create escrow:', err)
     escrowStore.setError('transaction', err.message || txError.value || 'Failed to create escrow. Please try again.')

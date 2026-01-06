@@ -142,16 +142,24 @@ export const useTokenStore = defineStore('token', () => {
   
   /**
    * Fetch token info with caching
+   * Note: Decimals are always fetched fresh from on-chain to ensure accuracy
    */
   async function fetchTokenInfo(mint) {
-    // Check cache first
+    // Check cache first for metadata (name, symbol, image)
     const cached = getCachedMetadata(mint)
-    if (cached) {
-      return { ...cached, mint }
-    }
     
-    // Fetch from registry
+    // Always fetch fresh token info to get accurate decimals
+    // This ensures decimals are always correct even if cached metadata exists
     const tokenInfo = await tokenRegistry.fetchTokenInfo(mint)
+    
+    // If we had cached metadata, merge it with fresh token info
+    // But always use fresh decimals
+    if (cached) {
+      tokenInfo.name = tokenInfo.name || cached.name
+      tokenInfo.symbol = tokenInfo.symbol || cached.symbol
+      tokenInfo.image = tokenInfo.image || cached.image
+      // Decimals are always from fresh fetch, don't use cached
+    }
     
     // Only cache if we have at least name or symbol (valid token info)
     if (tokenInfo && (tokenInfo.name || tokenInfo.symbol)) {
@@ -159,7 +167,7 @@ export const useTokenStore = defineStore('token', () => {
         name: tokenInfo.name,
         symbol: tokenInfo.symbol,
         image: tokenInfo.image,
-        decimals: tokenInfo.decimals
+        decimals: tokenInfo.decimals // Cache fresh decimals
       })
     }
     

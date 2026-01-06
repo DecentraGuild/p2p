@@ -9,22 +9,24 @@ import { fetchTokenMetadata } from '../utils/metaplex'
 import { metadataRateLimiter } from '../utils/rateLimiter'
 import { loadTokenRegistryList, preloadTokenRegistry as preloadSharedRegistry } from '../utils/tokenRegistry'
 import { cleanTokenString } from '../utils/formatters'
+import { getMint } from '@solana/spl-token'
 
 // Use shared connection
 const connection = useSolanaConnection()
 
 /**
  * Fetch token decimals from on-chain if not available in registry
+ * Uses getMint from @solana/spl-token for reliable decimal fetching
  */
 async function fetchTokenDecimals(mintAddress) {
   try {
     const { PublicKey } = await import('@solana/web3.js')
     
     const mintPubkey = new PublicKey(mintAddress)
-    const accountInfo = await connection.getParsedAccountInfo(mintPubkey)
+    const mintInfo = await getMint(connection, mintPubkey)
     
-    if (accountInfo && accountInfo.value && accountInfo.value.data && 'parsed' in accountInfo.value.data) {
-      return accountInfo.value.data.parsed.info.decimals
+    if (mintInfo && typeof mintInfo.decimals === 'number') {
+      return mintInfo.decimals
     }
     
     return null
@@ -54,12 +56,19 @@ async function fetchTokenInfo(mintAddress) {
     )
     
     // Get decimals - prefer registry, then on-chain, then default to 9
-    let decimals = registryToken?.decimals || null
-    if (!decimals) {
-      decimals = await fetchTokenDecimals(mintAddress)
+    // Always try on-chain first to ensure accuracy, then fall back to registry
+    let decimals = await fetchTokenDecimals(mintAddress)
+    if (decimals === null || decimals === undefined) {
+      decimals = registryToken?.decimals || null
     }
-    if (!decimals) {
+    if (decimals === null || decimals === undefined) {
+      console.warn(`Could not determine decimals for token ${mintAddress}, defaulting to 9`)
       decimals = 9 // Default fallback
+    }
+    
+    // Log decimals for debugging
+    if (decimals !== registryToken?.decimals) {
+      console.debug(`Token ${mintAddress} decimals: ${decimals} (registry had: ${registryToken?.decimals || 'none'})`)
     }
     
     return {

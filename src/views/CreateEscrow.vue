@@ -80,10 +80,9 @@
               <span class="text-text-primary font-semibold">Total</span>
               <span class="text-text-primary font-bold">{{ formatDecimals(costBreakdown.total) }} SOL</span>
             </div>
-            <div class="text-xs pt-1">
-              <span class="text-status-success">{{ formatDecimals(costBreakdown.recoverable) }} SOL recoverable</span>
-              <span class="mx-1 text-text-secondary">•</span>
-              <span class="text-text-secondary">{{ formatDecimals(costBreakdown.nonRecoverable) }} SOL fee</span>
+            <div v-if="totalBalanceChange > 0" class="pt-1.5 border-t border-border-color/50 flex items-center justify-between">
+              <span class="text-text-primary font-semibold">Balance Change</span>
+              <span class="text-text-primary font-bold">{{ formatDecimals(totalBalanceChange) }} SOL</span>
             </div>
             <div class="text-xs text-text-muted pt-1">
               <button
@@ -142,6 +141,7 @@ import { validateRecipientAddress } from '../utils/recipientValidation'
 import { toBN, toPublicKey } from '../utils/solanaUtils'
 import { useWalletValidation } from '../composables/useWalletValidation'
 import { formatUserFriendlyError } from '../utils/errorMessages'
+import { isWrappedSol } from '../utils/wrappedSolHelpers'
 
 const router = useRouter()
 const escrowStore = useEscrowStore()
@@ -246,6 +246,21 @@ const { costBreakdown, loadingCosts, calculateCosts } = useTransactionCosts({
 watch([() => escrowStore.offerToken, () => escrowStore.requestToken, connected, publicKey], () => {
   calculateCosts()
 }, { immediate: true })
+
+// Calculate total balance change (transaction costs + offered SOL if applicable)
+const totalBalanceChange = computed(() => {
+  if (!costBreakdown.value) return 0
+  
+  let total = costBreakdown.value.total
+  
+  // If offer token is wrapped SOL, add the offer amount to the total
+  if (escrowStore.offerToken && isWrappedSol(escrowStore.offerToken.mint)) {
+    const offerAmountNum = parseFloat(escrowStore.offerAmount) || 0
+    total += offerAmountNum
+  }
+  
+  return total
+})
 
 /**
  * Handle escrow creation

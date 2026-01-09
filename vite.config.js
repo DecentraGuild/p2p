@@ -35,7 +35,7 @@ export default defineConfig(({ mode }) => {
     }),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['dguild-logo-p2p.svg'],
+      includeAssets: ['dguild-logo-p2p.svg', 'android-chrome-192x192.png', 'android-chrome-512x512.png'],
       manifest: {
         name: 'dGuild Escrow',
         short_name: 'dGuild',
@@ -48,13 +48,13 @@ export default defineConfig(({ mode }) => {
         start_url: '/',
         icons: [
           {
-            src: '/dguild-logo-p2p.svg',
+            src: '/android-chrome-192x192.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any maskable'
           },
           {
-            src: '/dguild-logo-p2p.svg',
+            src: '/android-chrome-512x512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'

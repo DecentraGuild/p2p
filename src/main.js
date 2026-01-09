@@ -42,9 +42,14 @@ import { initializeWalletDetection } from './utils/walletDetection'
 // Note: On mobile, especially in in-app browsers, Wallet Standard detection
 // may be delayed. We initialize wallet detection early to ensure wallets
 // are available when needed.
+//
+// IMPORTANT: Explicitly specifying the network for all wallet adapters ensures
+// that wallets like Backpack on mobile know to use Solana mainnet. Without this,
+// some wallets may default to devnet or custom networks, causing "SVM network"
+// errors. This is especially critical for Wallet Standard wallets on mobile.
 const walletOptions = {
   wallets: [
-    new PhantomWalletAdapter(),
+    new PhantomWalletAdapter({ network: WalletAdapterNetwork.Mainnet }),
     new SolflareWalletAdapter({ network: WalletAdapterNetwork.Mainnet }),
     // Note: Backpack and other Wallet Standard wallets are automatically detected
     // via the Wallet Standard integration in solana-wallets-vue
@@ -52,6 +57,10 @@ const walletOptions = {
     // 
     // For mobile support, we initialize wallet detection early to ensure
     // Wallet Standard wallets are detected even in in-app browsers
+    //
+    // The network specification above ensures Wallet Standard wallets (like Backpack)
+    // receive the correct network information during connection, preventing "SVM network"
+    // errors on mobile devices.
   ],
   autoConnect: true,
   // localStorageKey is used to persist wallet selection across sessions

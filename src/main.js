@@ -43,12 +43,23 @@ import { initializeWalletDetection } from './utils/walletDetection'
 // may be delayed. We initialize wallet detection early to ensure wallets
 // are available when needed.
 //
-// IMPORTANT: Explicitly specifying the network for all wallet adapters ensures
-// that wallets like Backpack on mobile know to use Solana mainnet. Without this,
+// IMPORTANT: Explicitly specifying the network cluster for all wallet adapters ensures
+// that wallets like Backpack on mobile know to use Solana mainnet-beta cluster. Without this,
 // some wallets may default to devnet or custom networks, causing "SVM network"
 // errors. This is especially critical for Wallet Standard wallets on mobile.
+//
+// Network Cluster Configuration:
+// - WalletAdapterNetwork.Mainnet = 'mainnet-beta' cluster
+// - WalletAdapterNetwork.Devnet = 'devnet' cluster
+// - WalletAdapterNetwork.Testnet = 'testnet' cluster
+//
+// By explicitly setting network: WalletAdapterNetwork.Mainnet, we ensure:
+// 1. All wallet adapters (Phantom, Solflare, Backpack, etc.) connect to mainnet-beta
+// 2. The Connection instance uses mainnet RPC endpoints
+// 3. Mobile wallets receive the correct network information during connection
 const walletOptions = {
   wallets: [
+    // Explicitly specify mainnet-beta cluster for each wallet adapter
     new PhantomWalletAdapter({ network: WalletAdapterNetwork.Mainnet }),
     new SolflareWalletAdapter({ network: WalletAdapterNetwork.Mainnet }),
     // Note: Backpack and other Wallet Standard wallets are automatically detected
@@ -65,9 +76,10 @@ const walletOptions = {
   autoConnect: true,
   // localStorageKey is used to persist wallet selection across sessions
   localStorageKey: 'walletName',
-  // Explicitly set network for Wallet Standard wallets (like Backpack)
-  // This ensures mobile wallets know to use Solana mainnet
-  network: WalletAdapterNetwork.Mainnet,
+  // Explicitly set network cluster to mainnet-beta for all wallets
+  // This ensures mobile wallets (especially Backpack) know to use Solana mainnet-beta cluster
+  // This is critical for preventing "SVM network" errors on mobile devices
+  network: WalletAdapterNetwork.Mainnet, // Equivalent to 'mainnet-beta' cluster
 }
 
 // Initialize wallet detection early for mobile devices

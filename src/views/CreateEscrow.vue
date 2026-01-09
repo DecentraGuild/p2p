@@ -67,22 +67,36 @@
           <div v-if="costBreakdown" class="space-y-1.5">
             <div class="text-xs text-text-muted mb-1.5">Transaction Costs</div>
             <div class="space-y-1">
+              <!-- Escrow Accounts -->
               <div
-                v-for="item in costBreakdown.items"
+                v-for="item in costBreakdown.items.filter(item => item.label.includes('Escrow accounts'))"
                 :key="item.label"
                 class="flex items-center justify-between text-xs"
               >
-                <span class="text-text-secondary">{{ item.label }}</span>
+                <span class="text-text-secondary">Escrow Accounts</span>
+                <span class="text-text-primary font-medium">{{ formatDecimals(item.amount) }} SOL</span>
+              </div>
+              <!-- Escrow Fee -->
+              <div
+                v-for="item in costBreakdown.items.filter(item => item.label.includes('Escrow fee'))"
+                :key="item.label"
+                class="flex items-center justify-between text-xs"
+              >
+                <span class="text-text-secondary">Escrow Fee</span>
                 <span class="text-text-primary font-medium">{{ formatDecimals(item.amount) }} SOL</span>
               </div>
             </div>
             <div class="pt-1.5 border-t border-border-color/50 flex items-center justify-between">
-              <span class="text-text-primary font-semibold">Total</span>
+              <span class="text-text-primary font-semibold">Total Costs</span>
               <span class="text-text-primary font-bold">{{ formatDecimals(costBreakdown.total) }} SOL</span>
             </div>
-            <div v-if="totalBalanceChange > 0" class="pt-1.5 border-t border-border-color/50 flex items-center justify-between">
-              <span class="text-text-primary font-semibold">Balance Change</span>
-              <span class="text-text-primary font-bold">{{ formatDecimals(totalBalanceChange) }} SOL</span>
+            <!-- Deposit -->
+            <div v-if="offerToken && offerAmount" class="pt-1.5 border-t border-border-color/50 flex items-center justify-between text-xs">
+              <span class="text-text-primary font-semibold">Deposit</span>
+              <div class="flex items-center gap-1.5">
+                <span class="text-text-primary font-bold">{{ formatDecimals(offerAmount) }}</span>
+                <span class="text-text-primary font-medium">{{ offerToken.symbol || 'TOKEN' }}</span>
+              </div>
             </div>
             <div class="text-xs text-text-muted pt-1">
               <button
@@ -141,7 +155,6 @@ import { validateRecipientAddress } from '../utils/recipientValidation'
 import { toBN, toPublicKey } from '../utils/solanaUtils'
 import { useWalletValidation } from '../composables/useWalletValidation'
 import { formatUserFriendlyError } from '../utils/errorMessages'
-import { isWrappedSol } from '../utils/wrappedSolHelpers'
 
 const router = useRouter()
 const escrowStore = useEscrowStore()
@@ -246,21 +259,6 @@ const { costBreakdown, loadingCosts, calculateCosts } = useTransactionCosts({
 watch([() => escrowStore.offerToken, () => escrowStore.requestToken, connected, publicKey], () => {
   calculateCosts()
 }, { immediate: true })
-
-// Calculate total balance change (transaction costs + offered SOL if applicable)
-const totalBalanceChange = computed(() => {
-  if (!costBreakdown.value) return 0
-  
-  let total = costBreakdown.value.total
-  
-  // If offer token is wrapped SOL, add the offer amount to the total
-  if (escrowStore.offerToken && isWrappedSol(escrowStore.offerToken.mint)) {
-    const offerAmountNum = parseFloat(escrowStore.offerAmount) || 0
-    total += offerAmountNum
-  }
-  
-  return total
-})
 
 /**
  * Handle escrow creation

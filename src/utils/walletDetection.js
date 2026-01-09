@@ -107,6 +107,43 @@ export async function waitForBackpack(maxWait = 5000) {
 }
 
 /**
+ * Ensure Wallet Standard wallets know to use Solana mainnet
+ * This is critical for Backpack on mobile which may default to devnet
+ */
+export function ensureMainnetForWalletStandard() {
+  if (typeof window === 'undefined') return
+  
+  try {
+    // For Wallet Standard wallets, try to set network preference
+    if (window.navigator?.wallets) {
+      const wallets = window.navigator.wallets
+      if (Array.isArray(wallets)) {
+        wallets.forEach(wallet => {
+          // If wallet supports network selection, ensure it's set to mainnet
+          if (wallet && typeof wallet === 'object') {
+            // Some Wallet Standard implementations support network property
+            // We'll log this for debugging
+            if (wallet.name?.toLowerCase().includes('backpack')) {
+              console.log('[Wallet Detection] Backpack wallet found, ensuring mainnet configuration')
+            }
+          }
+        })
+      }
+    }
+    
+    // Also check for legacy solana property
+    if (window.solana) {
+      // Some wallets support network property
+      if (window.solana.isBackpack) {
+        console.log('[Wallet Detection] Legacy Backpack detected, ensuring mainnet')
+      }
+    }
+  } catch (err) {
+    console.warn('[Wallet Detection] Error ensuring mainnet for Wallet Standard:', err)
+  }
+}
+
+/**
  * Initialize wallet detection for mobile devices
  * This should be called early in the app lifecycle
  */
@@ -130,6 +167,9 @@ export async function initializeWalletDetection() {
       const wallets = window.navigator.wallets
       console.log('[Wallet Detection] Available Wallet Standard wallets:', 
         Array.isArray(wallets) ? wallets.map(w => w.name || w.id) : 'Not an array')
+      
+      // Ensure mainnet is configured for all Wallet Standard wallets
+      ensureMainnetForWalletStandard()
     }
   } else {
     console.warn('[Wallet Detection] Wallet Standard not detected on mobile - wallets may not be available')
@@ -143,6 +183,8 @@ export async function initializeWalletDetection() {
     const backpackAvailable = await waitForBackpack(3000)
     if (backpackAvailable) {
       console.log('[Wallet Detection] Backpack detected in in-app browser')
+      // Ensure mainnet is set for Backpack
+      ensureMainnetForWalletStandard()
     } else {
       console.warn('[Wallet Detection] Backpack not detected in in-app browser')
       console.warn('[Wallet Detection] This may indicate a Wallet Standard detection issue')

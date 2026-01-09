@@ -65,6 +65,9 @@ const walletOptions = {
   autoConnect: true,
   // localStorageKey is used to persist wallet selection across sessions
   localStorageKey: 'walletName',
+  // Explicitly set network for Wallet Standard wallets (like Backpack)
+  // This ensures mobile wallets know to use Solana mainnet
+  network: WalletAdapterNetwork.Mainnet,
 }
 
 // Initialize wallet detection early for mobile devices
